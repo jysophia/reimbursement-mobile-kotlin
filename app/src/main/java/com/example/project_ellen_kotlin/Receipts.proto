@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+option java_package = "com.example.project_ellen_kotlin";
+option java_multiple_files = true;
+option java_outer_classname = "Receipts";
+
+message ReceiptsProto {
+  string fileName = 1;
+  string date = 2;
+  float totalCost = 3;
+}
