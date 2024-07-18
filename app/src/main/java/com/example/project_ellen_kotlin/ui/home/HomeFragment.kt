@@ -1,34 +1,40 @@
 package com.example.project_ellen_kotlin.ui.home
 
 import android.Manifest
-import android.content.ContentValues
 import android.content.Context
 import android.content.pm.PackageManager
-import android.net.Uri
-import androidx.camera.core.*
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
-import android.provider.MediaStore
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.camera.core.ImageCapture
-import androidx.camera.core.Preview
+import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
-import androidx.camera.lifecycle.R
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import com.example.project_ellen_kotlin.Receipt
 import com.example.project_ellen_kotlin.databinding.FragmentHomeBinding
+import com.google.api.gax.core.CredentialsProvider
+import com.google.auth.oauth2.GoogleCredentials
+import com.google.cloud.vision.v1.AnnotateImageRequest
+import com.google.cloud.vision.v1.Feature
+import com.google.cloud.vision.v1.Image
+import com.google.cloud.vision.v1.ImageAnnotatorClient
+import com.google.cloud.vision.v1.ImageAnnotatorSettings
+import com.google.protobuf.ByteString
 import java.io.File
+import java.io.FileInputStream
 import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+
 
 typealias CornersListener = () -> Unit
 
@@ -51,6 +57,7 @@ class HomeFragment : Fragment() {
     // This property is only valid between onCreateView and
     // onDestroyView.
     private val binding get() = _binding!!
+    private val listOfReceipts = mutableListOf<Receipt>()
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -135,12 +142,78 @@ class HomeFragment : Fragment() {
 
                 override fun
                         onImageSaved(output: ImageCapture.OutputFileResults){
-                    val msg = "Photo capture succeeded: ${output.savedUri}"
-                    Toast.makeText(safeContext, msg, Toast.LENGTH_SHORT).show()
-                    Log.d(TAG, msg)
+                            analyzePhoto(output, photoFile)
+//                            val newReceipt = Receipt(Date(), 0.0F, "", "${output.savedUri}")
+//                    listOfReceipts.add(newReceipt)
+//                    val msg = "Photo capture succeeded: ${output.savedUri}"
+//                    Toast.makeText(safeContext, msg, Toast.LENGTH_LONG).show()
+//                    Log.d(TAG, msg)
+                        // Google OCR extract date and price
+//                    analyzePhotoWithGoogle(output, photoFile)
                 }
             }
         )
+    }
+
+    private fun analyzePhoto(output: ImageCapture.OutputFileResults, photoFile : File) {
+        val date = Date()
+        val receipt = Receipt(date, 0.0F, "", "${output.savedUri}")
+        listOfReceipts.add(receipt)
+        val msg = "Photo capture succeeded: ${output.savedUri}"
+        Toast.makeText(safeContext, msg, Toast.LENGTH_LONG).show()
+        Log.d(TAG, msg)
+    }
+
+    private fun analyzePhotoWithGoogle(output: ImageCapture.OutputFileResults, photoFile : File) {
+        val requests = mutableListOf<AnnotateImageRequest>()
+
+//        val imgProto = ByteString.copyFrom(photoFile.readBytes())
+        val imgProto = ByteString.readFrom(FileInputStream(photoFile.path))
+        val img = Image.newBuilder().setContent(imgProto).build()
+        val feat = Feature.newBuilder().setType(Feature.Type.TEXT_DETECTION).build()
+        val request = AnnotateImageRequest.newBuilder().addFeatures(feat).setImage(img).build()
+        requests.add(request)
+
+        try {
+
+//            val client = ImageAnnotatorClient.create()
+            val client = createImageAnnotatorClient()
+            val response = client.batchAnnotateImages(requests)
+            val responsesList = response.responsesList
+
+            for (res in responsesList) {
+                if (res.hasError()) {
+                    val msg = "Error: %s%n" + res.error.getMessage()
+                    Toast.makeText(safeContext, msg, Toast.LENGTH_LONG).show()
+                    Log.d(TAG, msg)
+                }
+
+                // For full list of available annotations, see http://g.co/cloud/vision/docs
+                for (annotation in res.textAnnotationsList) {
+                    val msg = "Text: %s%n" + annotation.description + "\n" +
+                            "Position: %s%n" + annotation.boundingPoly
+                    Toast.makeText(safeContext, msg, Toast.LENGTH_LONG).show()
+                    Log.d(TAG, msg)
+                }
+            }
+
+        } catch (e : Exception) {
+            val msg = "Error: " + e.message
+            Toast.makeText(safeContext, msg, Toast.LENGTH_LONG).show()
+            Log.d(TAG, msg)
+        }
+
+
+    }
+
+    private fun createImageAnnotatorClient(): ImageAnnotatorClient {
+        val credentialPath = "./application_default_credentials.json"
+        val credential = GoogleCredentials.fromStream(FileInputStream(credentialPath))
+
+        val settings = ImageAnnotatorSettings.newBuilder()
+            .setCredentialsProvider { credential }
+            .build()
+        return ImageAnnotatorClient.create(settings)
     }
 
     private fun startCamera() {
