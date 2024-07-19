@@ -67,6 +67,9 @@ dependencies {
     implementation(libs.androidx.rules)
     implementation(libs.core.ktx)
     implementation("com.google.cloud:google-cloud-vision:3.42.0")
+    implementation(platform("androidx.compose:compose-bom:2024.06.00"))
+    implementation("androidx.compose.material3:material3")
+    implementation ("androidx.compose.material:material-icons-extended")
     testImplementation(libs.junit)
     testImplementation("org.mockito:mockito-core:5.11.0")
     // https://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-test

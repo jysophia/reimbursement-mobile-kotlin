@@ -1,15 +1,19 @@
 package com.example.project_ellen_kotlin.ui.home
 
 import android.Manifest
+import android.app.AlertDialog
 import android.content.Context
+import android.content.DialogInterface
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.text.InputType
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
 import android.widget.Toast
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
@@ -19,7 +23,6 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.example.project_ellen_kotlin.Receipt
 import com.example.project_ellen_kotlin.databinding.FragmentHomeBinding
-import com.google.api.gax.core.CredentialsProvider
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.vision.v1.AnnotateImageRequest
 import com.google.cloud.vision.v1.Feature
@@ -130,6 +133,7 @@ class HomeFragment : Fragment() {
 
         // Set up image capture listener, which is triggered after photo has
         // been taken
+        var receipt: Receipt? = null
         imageCapture.takePicture(
             outputOptions,
             ContextCompat.getMainExecutor(safeContext),
@@ -142,26 +146,41 @@ class HomeFragment : Fragment() {
 
                 override fun
                         onImageSaved(output: ImageCapture.OutputFileResults){
-                            analyzePhoto(output, photoFile)
-//                            val newReceipt = Receipt(Date(), 0.0F, "", "${output.savedUri}")
-//                    listOfReceipts.add(newReceipt)
-//                    val msg = "Photo capture succeeded: ${output.savedUri}"
-//                    Toast.makeText(safeContext, msg, Toast.LENGTH_LONG).show()
-//                    Log.d(TAG, msg)
-                        // Google OCR extract date and price
-//                    analyzePhotoWithGoogle(output, photoFile)
+                            receipt = analyzePhoto(output, photoFile)
+                            receipt?.let { userInputPurpose(it) }
                 }
             }
         )
     }
 
-    private fun analyzePhoto(output: ImageCapture.OutputFileResults, photoFile : File) {
+    private fun userInputPurpose(receipt: Receipt) {
+        var purpose = ""
+        val builder: AlertDialog.Builder = AlertDialog.Builder(safeContext)
+        builder.setTitle("Title")
+
+        // Set up the input
+        val input = EditText(safeContext)
+        // Specify the type of input expected; this, for example, sets the input as a password, and will mask the text
+        input.setInputType(InputType.TYPE_CLASS_TEXT)
+        builder.setView(input)
+
+        // Set up the buttons
+        builder.setPositiveButton("OK",
+            DialogInterface.OnClickListener { dialog, which ->
+                purpose = input.getText().toString()
+                receipt.setPurpose(purpose)
+            })
+        builder.setNegativeButton("Cancel",
+            DialogInterface.OnClickListener { dialog, which -> dialog.cancel() })
+
+        builder.show()
+    }
+
+    private fun analyzePhoto(output: ImageCapture.OutputFileResults, photoFile : File): Receipt {
         val date = Date()
         val receipt = Receipt(date, 0.0F, "", "${output.savedUri}")
         listOfReceipts.add(receipt)
-        val msg = "Photo capture succeeded: ${output.savedUri}"
-        Toast.makeText(safeContext, msg, Toast.LENGTH_LONG).show()
-        Log.d(TAG, msg)
+        return receipt
     }
 
     private fun analyzePhotoWithGoogle(output: ImageCapture.OutputFileResults, photoFile : File) {
