@@ -32,47 +32,46 @@ import java.util.concurrent.Executors
 //Reference: https://github.com/android/camera-samples/blob/main/CameraXBasic/app/src/androidTest/java/com/android/example/cameraxbasic/CameraPreviewTest.kt
 //@RunWith(RobolectricTestRunner::class)
 class CameraPreviewTest {
-//    @Mock
-//    private lateinit var context: Context
-//
-//    var lifecycle = mock(LifecycleOwner::class.java)
-//    private var registry: LifecycleRegistry? = null
-//    private val thread = HandlerThread("CameraPreviewTest").also { it.start() }
-//    private var executor = Executors.newSingleThreadExecutor()
-//    private var provider: ProcessCameraProvider? = null // requires main thread
-//
-//    fun getLifecycle() = registry!!
-//
-//    @JvmField
-//    @Rule
-//    val cameraAccess = GrantPermissionRule.grant(Manifest.permission.CAMERA)
-//    @Before
-//    fun setUp() {
-//        context = ApplicationProvider.getApplicationContext<Context>()
-//        assertNotNull(context)
-//        provider = ProcessCameraProvider.getInstance(context).get()
-//        assertNotNull(provider)
-//    }
-//    @UiThreadTest
-//    @After
-//    fun teardown() {
-//        provider?.unbindAll()
-//        executor?.shutdown()
-//    }
+    @Mock
+    private lateinit var context: Context
+
+    var lifecycle = mock(LifecycleOwner::class.java)
+    private var registry: LifecycleRegistry? = null
+    private val thread = HandlerThread("CameraPreviewTest").also { it.start() }
+    private var executor = Executors.newSingleThreadExecutor()
+    private var provider: ProcessCameraProvider? = null // requires main thread
+
+    fun getLifecycle() = registry!!
+
+    @JvmField
+    @Rule
+    val cameraAccess = GrantPermissionRule.grant(Manifest.permission.CAMERA)
+    @Before
+    fun setUp() {
+        context = ApplicationProvider.getApplicationContext<Context>()
+        assertNotNull(context)
+        provider = ProcessCameraProvider.getInstance(context).get()
+        assertNotNull(provider)
+    }
+    @UiThreadTest
+    @After
+    fun teardown() {
+        provider?.unbindAll()
+        executor?.shutdown()
+    }
 
     @Test
     fun sampleTest() {
         assertEquals(4, 2+2)
     }
 
-//    @Test
-//    fun testCameraPreview() {
-//        registry?.currentState = Lifecycle.State.STARTED
-//        val selectorBuilder = CameraSelector.Builder()
-//        val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
-//        // note to self: figure out how lifecycles work
-//        provider?.bindToLifecycle(lifecycle, cameraSelector)
-//        assertTrue(provider!!.hasCamera(CameraSelector.DEFAULT_BACK_CAMERA))
-//
-//    }
+    @Test
+    fun testCameraPreview() {
+        registry?.currentState = Lifecycle.State.STARTED
+        val selectorBuilder = CameraSelector.Builder()
+        val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+        provider?.bindToLifecycle(lifecycle, cameraSelector)
+        assertTrue(provider!!.hasCamera(CameraSelector.DEFAULT_BACK_CAMERA))
+
+    }
 }

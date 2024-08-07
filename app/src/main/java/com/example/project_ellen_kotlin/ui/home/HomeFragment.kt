@@ -20,9 +20,11 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.activityViewModels
+import com.example.project_ellen_kotlin.MainActivity
 import com.example.project_ellen_kotlin.Receipt
 import com.example.project_ellen_kotlin.databinding.FragmentHomeBinding
+import com.example.project_ellen_kotlin.ui.SharedViewModel
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.vision.v1.AnnotateImageRequest
 import com.google.cloud.vision.v1.Feature
@@ -54,6 +56,8 @@ class HomeFragment : Fragment() {
     private var camera: Camera? = null
 
     private lateinit var safeContext: Context
+    private lateinit var activity: MainActivity
+    private val viewModel: SharedViewModel by activityViewModels()
     private lateinit var outputDirectory: File
     private lateinit var cameraExecutor: ExecutorService
 
@@ -65,6 +69,7 @@ class HomeFragment : Fragment() {
     override fun onAttach(context: Context) {
         super.onAttach(context)
         safeContext = context
+        activity = context as MainActivity
     }
 
     override fun onCreateView(
@@ -72,8 +77,8 @@ class HomeFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val homeViewModel =
-            ViewModelProvider(this).get(HomeViewModel::class.java)
+//        val viewModel =
+//            ViewModelProvider(this).get(SharedViewModel::class.java)
 
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
         val root: View = binding.root
@@ -97,6 +102,10 @@ class HomeFragment : Fragment() {
         outputDirectory = getOutputDirectory()
 
         cameraExecutor = Executors.newSingleThreadExecutor()
+    }
+
+    fun sendData(receipt: Receipt) {
+        viewModel.addReceipt(receipt)
     }
 
     private fun getOutputDirectory(): File {
@@ -156,7 +165,7 @@ class HomeFragment : Fragment() {
     private fun userInputPurpose(receipt: Receipt) {
         var purpose = ""
         val builder: AlertDialog.Builder = AlertDialog.Builder(safeContext)
-        builder.setTitle("Title")
+        builder.setTitle("Enter the purpose of this receipt")
 
         // Set up the input
         val input = EditText(safeContext)
@@ -169,6 +178,8 @@ class HomeFragment : Fragment() {
             DialogInterface.OnClickListener { dialog, which ->
                 purpose = input.getText().toString()
                 receipt.setPurpose(purpose)
+                viewModel.addReceipt(receipt)
+//                sendData(receipt)
             })
         builder.setNegativeButton("Cancel",
             DialogInterface.OnClickListener { dialog, which -> dialog.cancel() })
@@ -176,10 +187,10 @@ class HomeFragment : Fragment() {
         builder.show()
     }
 
-    private fun analyzePhoto(output: ImageCapture.OutputFileResults, photoFile : File): Receipt {
+    private fun analyzePhoto(output: ImageCapture.OutputFileResults, photoFile: File): Receipt {
         val date = Date()
         val receipt = Receipt(date, 0.0F, "", "${output.savedUri}")
-        listOfReceipts.add(receipt)
+        receipt.setImageData(output)
         return receipt
     }
 

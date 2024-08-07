@@ -1,13 +1,17 @@
 package com.example.project_ellen_kotlin
 
 import android.os.Bundle
+import androidx.activity.viewModels
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.camera.core.impl.Observable
+import androidx.lifecycle.Observer
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.example.project_ellen_kotlin.databinding.ActivityMainBinding
+import com.example.project_ellen_kotlin.ui.SharedViewModel
 
 
 class MainActivity : AppCompatActivity() {
