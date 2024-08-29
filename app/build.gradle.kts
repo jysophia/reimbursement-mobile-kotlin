@@ -72,6 +72,7 @@ dependencies {
     implementation ("androidx.compose.material:material-icons-extended")
     testImplementation(libs.junit)
     testImplementation("org.mockito:mockito-core:5.11.0")
+    testImplementation("androidx.test:rules:1.2.0")
     // https://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-test
     implementation("org.jetbrains.kotlin:kotlin-test:2.0.0")
     // https://mvnrepository.com/artifact/org.robolectric/robolectric

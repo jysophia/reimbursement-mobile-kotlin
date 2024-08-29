@@ -246,7 +246,7 @@ class HomeFragment : Fragment() {
         return ImageAnnotatorClient.create(settings)
     }
 
-    private fun startCamera() {
+    fun startCamera() {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(safeContext)
 
         cameraProviderFuture.addListener({
@@ -290,8 +290,6 @@ class HomeFragment : Fragment() {
             Log.e(TAG, "Use case binding failed", exc)
         }
     }
-
-    private fun requestPermissions() {}
 
     private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
         ContextCompat.checkSelfPermission(safeContext, it) == PackageManager.PERMISSION_GRANTED
