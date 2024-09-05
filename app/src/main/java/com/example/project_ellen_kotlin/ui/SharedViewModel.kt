@@ -8,27 +8,19 @@ import java.util.Date
 
 class SharedViewModel : ViewModel() {
 
-    private val _receiptList = MutableLiveData<Receipt>().apply {
-        value = this.value
+    private val _receiptList = MutableLiveData<String>().apply {
+        value = ""
     }
-    val receiptList: MutableLiveData<Receipt> = _receiptList
+    val receiptList : LiveData<String> = _receiptList
 
     val listOfReceipts = mutableListOf<Receipt>()
 
     fun addReceipt(receipt: Receipt) {
         // do something
-//        listOfReceipts.add(receipt)
-//        _receiptList.value = receipt
+        listOfReceipts.add(receipt)
+        _receiptList.value = receipt.getPurpose()
     }
 
     fun removeReceipt(receipt: Receipt) { TODO() }
 
-    private val _text = MutableLiveData<String>().apply {
-        value = "This ViewModel is shared by all fragments"
-    }
-    val text: LiveData<String> = _text
-
-//    fun selectReceipt(receipt: Receipt) {
-//        mutableReceiptList.value = receipt
-//    }
 }
