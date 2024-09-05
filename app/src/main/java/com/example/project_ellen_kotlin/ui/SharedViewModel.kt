@@ -1,5 +1,6 @@
 package com.example.project_ellen_kotlin.ui
 
+import android.net.Uri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -8,19 +9,19 @@ import java.util.Date
 
 class SharedViewModel : ViewModel() {
 
-    private val _receiptList = MutableLiveData<String>().apply {
-        value = ""
-    }
-    val receiptList : LiveData<String> = _receiptList
+    private val _imageUri = MutableLiveData<Uri>()
+    val imageUri: LiveData<Uri> = _imageUri
 
     val listOfReceipts = mutableListOf<Receipt>()
 
     fun addReceipt(receipt: Receipt) {
         // do something
         listOfReceipts.add(receipt)
-        _receiptList.value = receipt.getPurpose()
     }
 
     fun removeReceipt(receipt: Receipt) { TODO() }
+    fun updateImageUri(uri: Uri) {
+        _imageUri.value = uri
+    }
 
 }

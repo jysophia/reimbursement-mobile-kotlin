@@ -5,6 +5,7 @@ import android.app.AlertDialog
 import android.content.Context
 import android.content.DialogInterface
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
@@ -153,7 +154,9 @@ class HomeFragment : Fragment() {
 
                 override fun
                         onImageSaved(output: ImageCapture.OutputFileResults){
-                            receipt = analyzePhoto(output, photoFile)
+                            val savedUri = Uri.fromFile(photoFile)
+                            viewModel.updateImageUri(savedUri)
+                            receipt = analyzePhoto(output, savedUri)
                             receipt?.let { userInputPurpose(it) }
                 }
             }
@@ -185,9 +188,9 @@ class HomeFragment : Fragment() {
         builder.show()
     }
 
-    private fun analyzePhoto(output: ImageCapture.OutputFileResults, photoFile: File): Receipt {
+    private fun analyzePhoto(output: ImageCapture.OutputFileResults, uri: Uri): Receipt {
         val date = Date()
-        val receipt = Receipt(date, 0.0F, "", "${output.savedUri}")
+        val receipt = Receipt(date, 0.0F, "", uri)
         receipt.setImageData(output)
         return receipt
     }

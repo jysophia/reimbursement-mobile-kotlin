@@ -70,6 +70,7 @@ dependencies {
     implementation(platform("androidx.compose:compose-bom:2024.06.00"))
     implementation("androidx.compose.material3:material3")
     implementation ("androidx.compose.material:material-icons-extended")
+    implementation("io.coil-kt:coil:2.4.0")
     testImplementation(libs.junit)
     testImplementation("org.mockito:mockito-core:5.11.0")
     testImplementation("androidx.test:rules:1.2.0")
