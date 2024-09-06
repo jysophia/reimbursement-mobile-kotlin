@@ -5,7 +5,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.project_ellen_kotlin.Receipt
-import java.util.Date
 
 class SharedViewModel : ViewModel() {
 
@@ -19,6 +18,9 @@ class SharedViewModel : ViewModel() {
         listOfReceipts.add(receipt)
     }
 
+    fun retrieveListOfReceipts() : List<Receipt> {
+        return listOfReceipts
+    }
     fun removeReceipt(receipt: Receipt) { TODO() }
     fun updateImageUri(uri: Uri) {
         _imageUri.value = uri

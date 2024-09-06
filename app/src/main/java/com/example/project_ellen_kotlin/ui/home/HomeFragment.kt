@@ -180,6 +180,7 @@ class HomeFragment : Fragment() {
                 purpose = input.getText().toString()
                 receipt.setPurpose(purpose)
                 viewModel.addReceipt(receipt)
+//                receipt.getUri()?.let { viewModel.updateImageUri(it) }
 //                sendData(receipt)
             })
         builder.setNegativeButton("Cancel",

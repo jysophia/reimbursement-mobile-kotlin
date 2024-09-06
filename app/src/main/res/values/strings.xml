@@ -5,4 +5,9 @@
     <string name="title_notifications">Notifications</string>
     <string name="take_photo">Take Photo</string>
     <string name="receipts">ListOfReceipts</string>
+    <string name="delete">Delete</string>
+    <string name="show_info" />
+    <string name="email" />
+    <string name="receipt_information">Receipt Information</string>
+    <string name="send_email">Email</string>
 </resources>
