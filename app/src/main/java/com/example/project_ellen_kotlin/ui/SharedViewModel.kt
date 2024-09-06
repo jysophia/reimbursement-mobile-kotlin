@@ -4,12 +4,16 @@ import android.net.Uri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.example.project_ellen_kotlin.Email
 import com.example.project_ellen_kotlin.Receipt
 
 class SharedViewModel : ViewModel() {
 
     private val _imageUri = MutableLiveData<Uri>()
     val imageUri: LiveData<Uri> = _imageUri
+
+    private val _emailMessage = MutableLiveData<String>()
+    val emailMessage: LiveData<String> = _emailMessage
 
     val listOfReceipts = mutableListOf<Receipt>()
 
@@ -24,6 +28,10 @@ class SharedViewModel : ViewModel() {
     fun removeReceipt(receipt: Receipt) { TODO() }
     fun updateImageUri(uri: Uri) {
         _imageUri.value = uri
+    }
+
+    fun setupEmail(email: Email) {
+        _emailMessage.value = email.getMessage()
     }
 
 }

@@ -14,6 +14,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import coil.load
+import com.example.project_ellen_kotlin.Email
 import com.example.project_ellen_kotlin.MainActivity
 import com.example.project_ellen_kotlin.R
 import com.example.project_ellen_kotlin.databinding.FragmentDashboardBinding
@@ -99,7 +100,13 @@ class DashboardFragment : Fragment() {
 
     private fun setupEmail() {
         val lor = viewModel.retrieveListOfReceipts()
-
+        val email = Email(lor[0])
+        val message = "Attached is the following receipt: \n" +
+                "Date: " + lor[0].getDate() + "\n" +
+                "Purpose: " + lor[0].getPurpose() + "\n" +
+                "Amount Paid: " + lor[0].getPrice() + "\n"
+        email.setMessage(message)
+        viewModel.setupEmail(email)
     }
 
     private fun deleteImage() {

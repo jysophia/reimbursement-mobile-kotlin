@@ -11,6 +11,7 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.ViewModelProvider
+import com.example.project_ellen_kotlin.Email
 import com.example.project_ellen_kotlin.MainActivity
 import com.example.project_ellen_kotlin.databinding.FragmentNotificationsBinding
 import com.example.project_ellen_kotlin.ui.SharedViewModel
@@ -40,21 +41,26 @@ class NotificationsFragment : Fragment() {
         _binding = FragmentNotificationsBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
-        viewModel.imageUri.observe(viewLifecycleOwner) {uri ->
-            if (uri != null) {
-                sendEmailWithReceipt(uri)
-            }
+        val textView: TextView = binding.textNotifications
+        viewModel.emailMessage.observe(viewLifecycleOwner) {
+            textView.text = it
         }
+
+//        viewModel.emailMessage.observe(viewLifecycleOwner) {email ->
+//            if (email != null) {
+//                sendEmailWithReceipt(email)
+//            }
+//        }
 
         return root
     }
 
-    private fun sendEmailWithReceipt(uri: Uri) {
+    private fun sendEmailWithReceipt(email: Email) {
         val emailIntent = Intent(Intent.ACTION_SEND).apply {
             type = "message/rfc822" // MIME type for email
             putExtra(Intent.EXTRA_SUBJECT, "Subject of the email")
             putExtra(Intent.EXTRA_TEXT, "Body of the email")
-            putExtra(Intent.EXTRA_STREAM, uri) // Attach the image URI
+            putExtra(Intent.EXTRA_STREAM, email.attachReceipt.getUri()) // Attach the image URI
             type = "image/*" // MIME type for sending images
         }
 

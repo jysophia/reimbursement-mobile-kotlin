@@ -103,12 +103,8 @@ class HomeFragment : Fragment() {
         cameraExecutor = Executors.newSingleThreadExecutor()
     }
 
-    fun sendData(receipt: Receipt) {
-        viewModel.addReceipt(receipt)
-    }
-
     private fun getOutputDirectory(): File {
-        val mediaDir = activity?.externalMediaDirs?.firstOrNull()?.let {
+        val mediaDir = activity.externalMediaDirs?.firstOrNull()?.let {
             File(it, resources.getString(com.example.project_ellen_kotlin.R.string.app_name)).apply { mkdirs() }
         }
         return if (mediaDir != null && mediaDir.exists()) mediaDir else activity?.filesDir!!
