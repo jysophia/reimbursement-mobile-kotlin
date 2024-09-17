@@ -37,6 +37,22 @@ class DashboardFragment : Fragment() {
         activity = context as MainActivity
     }
 
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+
+        _binding = FragmentDashboardBinding.inflate(inflater, container, false)
+        val root: View = binding.root
+
+//        val textView: TextView = binding.textDashboard
+//        viewModel.text.observe(viewLifecycleOwner) {
+//            textView.text = it
+//        }
+        return root
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -100,12 +116,12 @@ class DashboardFragment : Fragment() {
 
     private fun setupEmail() {
         val lor = viewModel.retrieveListOfReceipts()
-        val email = Email(lor[0])
         val message = "Attached is the following receipt: \n" +
                 "Date: " + lor[0].getDate() + "\n" +
                 "Purpose: " + lor[0].getPurpose() + "\n" +
                 "Amount Paid: " + lor[0].getPrice() + "\n"
-        email.setMessage(message)
+        val email = Email(lor[0], "", "", message)
+//        email.setMessage(message)
         viewModel.setupEmail(email)
     }
 
@@ -113,23 +129,7 @@ class DashboardFragment : Fragment() {
 //        viewModel.updateImageUri(null)
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
 
-        _binding = FragmentDashboardBinding.inflate(inflater, container, false)
-        val root: View = binding.root
-
-
-//
-//        val textView: TextView = binding.textDashboard
-//        viewModel.text.observe(viewLifecycleOwner) {
-//            textView.text = it
-//        }
-        return root
-    }
 
     override fun onDestroyView() {
         super.onDestroyView()

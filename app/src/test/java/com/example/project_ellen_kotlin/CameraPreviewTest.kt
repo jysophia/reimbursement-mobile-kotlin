@@ -21,19 +21,17 @@ import androidx.lifecycle.LifecycleRegistry
 import androidx.test.annotation.UiThreadTest
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.rule.GrantPermissionRule
-import com.example.project_ellen_kotlin.ui.home.HomeFragment
+import com.example.project_ellen_kotlin.ui.home.CameraFragment
 import org.junit.After
 import org.junit.Assert
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.Mockito.mock
-import org.mockito.junit.MockitoJUnitRunner
 import org.robolectric.RobolectricTestRunner
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
@@ -134,7 +132,7 @@ class CameraPreviewTest : LifecycleOwner, ImageReader.OnImageAvailableListener, 
     fun testCameraPreview() {
 
         //init
-        val homeFragment : HomeFragment = mock()
+        val homeFragment : CameraFragment = mock()
 
         //work
         val result = homeFragment.startCamera()

@@ -16,6 +16,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
@@ -24,7 +25,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import com.example.project_ellen_kotlin.MainActivity
 import com.example.project_ellen_kotlin.Receipt
-import com.example.project_ellen_kotlin.databinding.FragmentHomeBinding
+import com.example.project_ellen_kotlin.databinding.FragmentCameraBinding
 import com.example.project_ellen_kotlin.ui.SharedViewModel
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.vision.v1.AnnotateImageRequest
@@ -36,7 +37,7 @@ import com.google.protobuf.ByteString
 import java.io.File
 import java.io.FileInputStream
 import java.text.SimpleDateFormat
-import java.util.Date
+import java.time.LocalDate
 import java.util.Locale
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -47,9 +48,9 @@ typealias CornersListener = () -> Unit
 // references:
 // https://developer.android.com/codelabs/camerax-getting-started#1
 // https://gist.github.com/Rickyip/83108b2006023a2fd3730d350feb477f
-class HomeFragment : Fragment() {
+class CameraFragment : Fragment() {
 
-    private var _binding: FragmentHomeBinding? = null
+    private var _binding: FragmentCameraBinding? = null
     private var preview: Preview? = null
     private var imageCapture: ImageCapture? = null
     private var imageAnalyzer: ImageAnalysis? = null
@@ -79,7 +80,7 @@ class HomeFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
 
-        _binding = FragmentHomeBinding.inflate(inflater, container, false)
+        _binding = FragmentCameraBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
         return root
@@ -185,9 +186,11 @@ class HomeFragment : Fragment() {
         builder.show()
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun analyzePhoto(output: ImageCapture.OutputFileResults, uri: Uri): Receipt {
-        val date = Date()
-        val receipt = Receipt(date, 0.0F, "", uri)
+        val date = LocalDate.now()
+        val receipt = Receipt(date, 0.0, "", uri)
+        receipt.setDate(date)
         receipt.setImageData(output)
         return receipt
     }
