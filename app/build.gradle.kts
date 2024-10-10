@@ -66,7 +66,11 @@ dependencies {
     implementation(libs.androidx.navigation.ui.ktx)
     implementation(libs.androidx.rules)
     implementation(libs.core.ktx)
-    implementation("com.google.cloud:google-cloud-vision:3.42.0")
+    implementation("com.google.cloud:google-cloud-vision:3.49.0")
+    // https://mvnrepository.com/artifact/com.google.mlkit/text-recognition
+    implementation("com.google.mlkit:text-recognition:16.0.0")
+    // https://mvnrepository.com/artifact/com.google.android.gms/play-services-vision
+    implementation("com.google.android.gms:play-services-vision:20.1.3")
     implementation(platform("androidx.compose:compose-bom:2024.06.00"))
     implementation("androidx.compose.material3:material3")
     implementation ("androidx.compose.material:material-icons-extended")

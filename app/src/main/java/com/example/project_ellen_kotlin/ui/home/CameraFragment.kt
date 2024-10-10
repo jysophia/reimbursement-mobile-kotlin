@@ -5,6 +5,8 @@ import android.app.AlertDialog
 import android.content.Context
 import android.content.DialogInterface
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -33,7 +35,11 @@ import com.google.cloud.vision.v1.Feature
 import com.google.cloud.vision.v1.Image
 import com.google.cloud.vision.v1.ImageAnnotatorClient
 import com.google.cloud.vision.v1.ImageAnnotatorSettings
+import com.google.mlkit.vision.common.InputImage
+import com.google.mlkit.vision.text.TextRecognition
+import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import com.google.protobuf.ByteString
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileInputStream
 import java.text.SimpleDateFormat
@@ -152,12 +158,24 @@ class CameraFragment : Fragment() {
                 override fun
                         onImageSaved(output: ImageCapture.OutputFileResults){
                             val savedUri = Uri.fromFile(photoFile)
-                            viewModel.updateImageUri(savedUri)
-                            receipt = analyzePhoto(output, savedUri)
-                            receipt?.let { userInputPurpose(it) }
+                            val bitmap = getBitMapFromUri(savedUri)
+                            if (bitmap != null) {
+                                analyzePhotoWithGoogle(bitmap, photoFile)
+                            }
+//                            viewModel.updateImageUri(savedUri)
+//                            receipt = analyzePhoto(output, savedUri)
+//                            receipt?.let { userInputPurpose(it) }
                 }
             }
         )
+    }
+
+    // Reference: ChatGPT
+    private fun getBitMapFromUri(imageUri: Uri?): Bitmap? {
+        return imageUri?.let {
+            val inputStream = requireContext().contentResolver.openInputStream(it)
+            BitmapFactory.decodeStream(inputStream)
+        }
     }
 
     private fun userInputPurpose(receipt: Receipt) {
@@ -195,56 +213,25 @@ class CameraFragment : Fragment() {
         return receipt
     }
 
-    private fun analyzePhotoWithGoogle(output: ImageCapture.OutputFileResults, photoFile : File) {
-        val requests = mutableListOf<AnnotateImageRequest>()
-
-//        val imgProto = ByteString.copyFrom(photoFile.readBytes())
-        val imgProto = ByteString.readFrom(FileInputStream(photoFile.path))
-        val img = Image.newBuilder().setContent(imgProto).build()
-        val feat = Feature.newBuilder().setType(Feature.Type.TEXT_DETECTION).build()
-        val request = AnnotateImageRequest.newBuilder().addFeatures(feat).setImage(img).build()
-        requests.add(request)
-
-        try {
-
-//            val client = ImageAnnotatorClient.create()
-            val client = createImageAnnotatorClient()
-            val response = client.batchAnnotateImages(requests)
-            val responsesList = response.responsesList
-
-            for (res in responsesList) {
-                if (res.hasError()) {
-                    val msg = "Error: %s%n" + res.error.getMessage()
-                    Toast.makeText(safeContext, msg, Toast.LENGTH_LONG).show()
-                    Log.d(TAG, msg)
-                }
-
-                // For full list of available annotations, see http://g.co/cloud/vision/docs
-                for (annotation in res.textAnnotationsList) {
-                    val msg = "Text: %s%n" + annotation.description + "\n" +
-                            "Position: %s%n" + annotation.boundingPoly
-                    Toast.makeText(safeContext, msg, Toast.LENGTH_LONG).show()
-                    Log.d(TAG, msg)
-                }
+    private fun analyzePhotoWithGoogle(bitmap: Bitmap, photoFile : File) {
+        val visionImage = InputImage.fromBitmap(bitmap, 0)
+        val textRecognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+        textRecognizer.process(visionImage)
+            .addOnSuccessListener { visionText ->
+                val resultText = visionText.text
+                Toast.makeText(safeContext, "Detected text: $resultText", Toast.LENGTH_LONG).show()
+                Log.d(TAG, "Detected text: $resultText")
             }
-
-        } catch (e : Exception) {
-            val msg = "Error: " + e.message
-            Toast.makeText(safeContext, msg, Toast.LENGTH_LONG).show()
-            Log.d(TAG, msg)
-        }
-
-
-    }
-
-    private fun createImageAnnotatorClient(): ImageAnnotatorClient {
-        val credentialPath = "./application_default_credentials.json"
-        val credential = GoogleCredentials.fromStream(FileInputStream(credentialPath))
-
-        val settings = ImageAnnotatorSettings.newBuilder()
-            .setCredentialsProvider { credential }
-            .build()
-        return ImageAnnotatorClient.create(settings)
+            .addOnFailureListener { e ->
+                Log.e(TAG, "Text recognition failed: ${e.message}", e)
+            }
+//        val requests = mutableListOf<AnnotateImageRequest>()
+//        val credentials = GoogleCredentials.getApplicationDefault()
+//        val imageAnnotatorClient = ImageAnnotatorClient.create()
+//
+//        val byteArrayOutputStream = ByteArrayOutputStream()
+//        bitmap.compress(Bitmap.CompressFormat.JPEG, 90, byteArrayOutputStream)
+//        val imgBytes = ByteString.copyFrom(byteArrayOutputStream.toByteArray())
     }
 
     fun startCamera() {
