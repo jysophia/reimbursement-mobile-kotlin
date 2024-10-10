@@ -1,20 +1,18 @@
 package com.example.project_ellen_kotlin
 
+import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.camera.core.ImageCapture
 import java.time.LocalDate
 
-data class Receipt(val newDate: LocalDate, val newPrice: Double, val newPurpose: String, val newUri: Uri?) {
-    private var date : LocalDate? = null
+data class Receipt(val newDate: Any, val newPrice: Double, val newPurpose: String, val newUri: Uri?) {
+    private var date : Any? = null
     private var price : Double = 0.0
     private var purpose : String = ""
     private var uri : Uri? = null
-    private var imageData : ImageCapture.OutputFileResults? = null
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    constructor() : this(LocalDate.now(), 0.0, "", null)
+    private var imageData : Bitmap? = null
 
     fun setPurpose(updatedPurpose: String) {
         purpose = updatedPurpose
@@ -24,12 +22,11 @@ data class Receipt(val newDate: LocalDate, val newPrice: Double, val newPurpose:
         return purpose
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
-    fun setDate(updatedDate: LocalDate) {
+    fun setDate(updatedDate: Any) {
         date = updatedDate
     }
 
-    fun getDate(): LocalDate? {
+    fun getDate(): Any? {
         return date
     }
 
@@ -49,11 +46,11 @@ data class Receipt(val newDate: LocalDate, val newPrice: Double, val newPurpose:
         return uri
     }
 
-    fun setImageData(updatedImageData : ImageCapture.OutputFileResults) {
-        imageData = updatedImageData
+    fun setImageData(bitmap : Bitmap) {
+        imageData = bitmap
     }
 
-    fun getImageData() : ImageCapture.OutputFileResults? {
+    fun getImageData() : Bitmap? {
         return imageData
     }
 

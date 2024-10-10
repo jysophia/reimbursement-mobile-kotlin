@@ -1,6 +1,7 @@
 package com.example.project_ellen_kotlin.ui.home
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.Context
 import android.content.DialogInterface
@@ -35,6 +36,7 @@ import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import java.io.File
 import java.text.SimpleDateFormat
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.Locale
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -146,16 +148,15 @@ class CameraFragment : Fragment() {
                     Log.e(TAG, msg)
                 }
 
+                @RequiresApi(Build.VERSION_CODES.O)
                 override fun
                         onImageSaved(output: ImageCapture.OutputFileResults){
                             val savedUri = Uri.fromFile(photoFile)
+//                            viewModel.updateImageUri(savedUri)
                             val bitmap = getBitMapFromUri(savedUri)
                             if (bitmap != null) {
-                                analyzePhotoWithGoogle(bitmap, photoFile)
+                                transformToReceipt(bitmap, savedUri)
                             }
-//                            viewModel.updateImageUri(savedUri)
-//                            receipt = analyzePhoto(output, savedUri)
-//                            receipt?.let { userInputPurpose(it) }
                 }
             }
         )
@@ -186,8 +187,7 @@ class CameraFragment : Fragment() {
                 purpose = input.getText().toString()
                 receipt.setPurpose(purpose)
                 viewModel.addReceipt(receipt)
-//                receipt.getUri()?.let { viewModel.updateImageUri(it) }
-//                sendData(receipt)
+                receipt.getUri()?.let { viewModel.updateImageUri(it) }
             })
         builder.setNegativeButton("Cancel",
             DialogInterface.OnClickListener { dialog, which -> dialog.cancel() })
@@ -196,31 +196,34 @@ class CameraFragment : Fragment() {
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    private fun analyzePhoto(output: ImageCapture.OutputFileResults, uri: Uri): Receipt {
-        val date = LocalDate.now()
-        val receipt = Receipt(date, 0.0, "", uri)
+    private fun createReceiptObject(date: Any, amount: Double, bitmap: Bitmap, uri: Uri): Receipt {
+        val receipt = Receipt(date, amount, "", uri)
         receipt.setDate(date)
-        receipt.setImageData(output)
+        receipt.setPrice(amount)
+        receipt.setUri(uri)
+        receipt.setImageData(bitmap)
         return receipt
     }
 
-    private fun analyzePhotoWithGoogle(bitmap: Bitmap, photoFile : File) {
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun transformToReceipt(bitmap: Bitmap, uri : Uri) {
         val visionImage = InputImage.fromBitmap(bitmap, 0)
         val textRecognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
         var resultText = ""
+        var receipt: Receipt? = null
         textRecognizer.process(visionImage)
             .addOnSuccessListener { visionText ->
                 resultText = visionText.text
-                parseResultText(resultText)
-                Toast.makeText(safeContext, "Detected text: $resultText", Toast.LENGTH_LONG).show()
-                Log.d(TAG, "Detected text: $resultText")
+                receipt = parseResultText(resultText, bitmap, uri)
+                receipt?.let { userInputPurpose(it) }
             }
             .addOnFailureListener { e ->
                 Log.e(TAG, "Text recognition failed: ${e.message}", e)
             }
     }
 
-    private fun parseResultText(resultText: String) {
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun parseResultText(resultText: String, bitmap: Bitmap, uri: Uri): Receipt {
         var textArray = resultText.split("\n")
         // Look for total amount
         val totalAmount = findTotalAmount(textArray)
@@ -228,6 +231,56 @@ class CameraFragment : Fragment() {
             // update string saying "Enter Amount"
         }
         // Look for date
+        val date = findDate(textArray)
+        val receipt = createReceiptObject(date, totalAmount, bitmap, uri)
+        return receipt
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    @SuppressLint("SimpleDateFormat")
+    private fun findDate(textArray: List<String>): Any {
+        var text = ""
+        var formatChosen = ""
+
+        val formatDict = mapOf(
+            "dd-mm-yyyy" to "\\b\\d{2}-\\d{2}-\\d{4}\\b(?:\\s\\d{2}:\\d{2})?",
+            "mm/dd/yyyy" to "\\b\\d{2}/\\d{2}/\\d{4}\\b(?:\\s\\d{2}:\\d{2})?",
+            "yyyy.mm.dd" to "\\b\\d{4}\\.\\d{2}\\.\\d{2}\\b(?:\\s\\d{2}:\\d{2})?",
+            "dd/mm/yy" to "\\b\\d{2}/\\d{2}/\\d{2}\\b(?:\\s\\d{2}:\\d{2})?",
+            "dd-mm" to "\\b\\d{2}-\\d{2}\\b(?:\\s\\d{2}:\\d{2})?",
+            "yyyy/mm/dd" to "\\b\\d{4}/\\d{2}/\\d{2}\\b(?:\\s\\d{2}:\\d{2})?",
+            "english" to "^\\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|(O|0)ct|Nov|Dec) \\d{1,2} \\d{4}(\\s?\\d{2}:\\d{2})?"
+        )
+
+
+        for (t in textArray) {
+            for ((f, reg) in formatDict) {
+                if (t.matches(Regex(reg))) {
+                    text = t
+                    formatChosen = f
+                    break
+                }
+            }
+            if (text.length >= 10) {
+                break
+            }
+        }
+
+        val date = convertDate(formatDict, text, formatChosen)
+        return date
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun convertDate(formatDict: Map<String, String>, text: String, formatChosen: String): Any {
+        var pattern = ""
+        if (formatChosen == "english") {
+            pattern = "MMM dd yyyy"
+        } else {
+            pattern = formatChosen
+        }
+        val formatter = DateTimeFormatter.ofPattern(pattern, Locale.ENGLISH)
+        val date = LocalDate.parse(text, formatter)
+        return date
     }
 
     private fun findTotalAmount(textArray: List<String>): Double {
