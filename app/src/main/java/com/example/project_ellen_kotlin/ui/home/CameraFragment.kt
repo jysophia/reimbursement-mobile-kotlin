@@ -29,19 +29,10 @@ import com.example.project_ellen_kotlin.MainActivity
 import com.example.project_ellen_kotlin.Receipt
 import com.example.project_ellen_kotlin.databinding.FragmentCameraBinding
 import com.example.project_ellen_kotlin.ui.SharedViewModel
-import com.google.auth.oauth2.GoogleCredentials
-import com.google.cloud.vision.v1.AnnotateImageRequest
-import com.google.cloud.vision.v1.Feature
-import com.google.cloud.vision.v1.Image
-import com.google.cloud.vision.v1.ImageAnnotatorClient
-import com.google.cloud.vision.v1.ImageAnnotatorSettings
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
-import com.google.protobuf.ByteString
-import java.io.ByteArrayOutputStream
 import java.io.File
-import java.io.FileInputStream
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.util.Locale
@@ -216,22 +207,41 @@ class CameraFragment : Fragment() {
     private fun analyzePhotoWithGoogle(bitmap: Bitmap, photoFile : File) {
         val visionImage = InputImage.fromBitmap(bitmap, 0)
         val textRecognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+        var resultText = ""
         textRecognizer.process(visionImage)
             .addOnSuccessListener { visionText ->
-                val resultText = visionText.text
+                resultText = visionText.text
+                parseResultText(resultText)
                 Toast.makeText(safeContext, "Detected text: $resultText", Toast.LENGTH_LONG).show()
                 Log.d(TAG, "Detected text: $resultText")
             }
             .addOnFailureListener { e ->
                 Log.e(TAG, "Text recognition failed: ${e.message}", e)
             }
-//        val requests = mutableListOf<AnnotateImageRequest>()
-//        val credentials = GoogleCredentials.getApplicationDefault()
-//        val imageAnnotatorClient = ImageAnnotatorClient.create()
-//
-//        val byteArrayOutputStream = ByteArrayOutputStream()
-//        bitmap.compress(Bitmap.CompressFormat.JPEG, 90, byteArrayOutputStream)
-//        val imgBytes = ByteString.copyFrom(byteArrayOutputStream.toByteArray())
+    }
+
+    private fun parseResultText(resultText: String) {
+        var textArray = resultText.split("\n")
+        // Look for total amount
+        val totalAmount = findTotalAmount(textArray)
+        if (totalAmount == 0.0) {
+            // update string saying "Enter Amount"
+        }
+        // Look for date
+    }
+
+    private fun findTotalAmount(textArray: List<String>): Double {
+        var maximum = 0.00
+        val format = "^\\\$?(\\d{1,}(\\.\\d{2}))\$"
+        for (text in textArray) {
+            if (text.matches(Regex(format))) {
+                val cost = text.toDouble()
+                if (maximum < cost) {
+                    maximum = cost
+                }
+            }
+        }
+        return maximum
     }
 
     fun startCamera() {
