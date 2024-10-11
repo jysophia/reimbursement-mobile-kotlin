@@ -155,7 +155,13 @@ class CameraFragment : Fragment() {
 //                            viewModel.updateImageUri(savedUri)
                             val bitmap = getBitMapFromUri(savedUri)
                             if (bitmap != null) {
-                                transformToReceipt(bitmap, savedUri)
+                                try {
+                                    transformToReceipt(bitmap, savedUri)
+                                } catch (e : Exception) {
+                                    val msg = "Photo capture failed: ${e.message}"
+                                    Toast.makeText(safeContext, msg, Toast.LENGTH_SHORT).show()
+                                    Log.e(TAG, msg)
+                                }
                             }
                 }
             }
@@ -227,9 +233,6 @@ class CameraFragment : Fragment() {
         var textArray = resultText.split("\n")
         // Look for total amount
         val totalAmount = findTotalAmount(textArray)
-        if (totalAmount == 0.0) {
-            // update string saying "Enter Amount"
-        }
         // Look for date
         val date = findDate(textArray)
         val receipt = createReceiptObject(date, totalAmount, bitmap, uri)
@@ -241,15 +244,20 @@ class CameraFragment : Fragment() {
     private fun findDate(textArray: List<String>): Any {
         var text = ""
         var formatChosen = ""
+        val day = "(0?[1-9]|1[0-9]|2[0-9]|3[0-1])"
+        val month = "(0?[1-9]|1[0-2])"
+        val year = "(202[4-9]|20[3-9]\\d|2100|2[1-9]\\d{2}|3000)"
+        val optionalTime = "\\b(?:\\s\\d{2}:\\d{2})?"
 
         val formatDict = mapOf(
-            "dd-mm-yyyy" to "\\b\\d{2}-\\d{2}-\\d{4}\\b(?:\\s\\d{2}:\\d{2})?",
-            "mm/dd/yyyy" to "\\b\\d{2}/\\d{2}/\\d{4}\\b(?:\\s\\d{2}:\\d{2})?",
-            "yyyy.mm.dd" to "\\b\\d{4}\\.\\d{2}\\.\\d{2}\\b(?:\\s\\d{2}:\\d{2})?",
-            "dd/mm/yy" to "\\b\\d{2}/\\d{2}/\\d{2}\\b(?:\\s\\d{2}:\\d{2})?",
-            "dd-mm" to "\\b\\d{2}-\\d{2}\\b(?:\\s\\d{2}:\\d{2})?",
-            "yyyy/mm/dd" to "\\b\\d{4}/\\d{2}/\\d{2}\\b(?:\\s\\d{2}:\\d{2})?",
-            "english" to "^\\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|(O|0)ct|Nov|Dec) \\d{1,2} \\d{4}(\\s?\\d{2}:\\d{2})?"
+            "yyyy-MM-dd" to "\\b$year-$month-$day$optionalTime",
+            "dd-MM-yyyy" to "\\b$day-$month-$year$optionalTime",
+            "MM-dd-yyyy" to "\\b$month-$day-$year$optionalTime",
+            "MM/dd/yyyy" to "\\b$month/$day/$year$optionalTime",
+            "dd/MM/yyyy" to "\\b$day/$month/$year$optionalTime",
+            "yyyy/MM/dd" to "\\b$year/$month/$day$optionalTime",
+            "yyyy.MM.dd" to "\\b$year\\.$month\\.$day$optionalTime",
+            "english" to "\\b(?:Jan(uary)?|Feb(ruary)?|Mar(ch)?|Apr(il)?|May|Jun(e)?|Jul(y)?|Aug(ust)?|Sep(t|tember)?|(O|0)ct(ober)?|Nov(ember)?|Dec(ember)?) $day $year$optionalTime"
         )
 
 
@@ -273,13 +281,32 @@ class CameraFragment : Fragment() {
     @RequiresApi(Build.VERSION_CODES.O)
     private fun convertDate(formatDict: Map<String, String>, text: String, formatChosen: String): Any {
         var pattern = ""
-        if (formatChosen == "english") {
-            pattern = "MMM dd yyyy"
-        } else {
-            pattern = formatChosen
+        var dateToParse = text
+        val formatter : Any
+        val date : Any
+        // Check if there is time included in text
+        val time = ".*\\b\\d{2}:\\d{2}\\b.*"
+        if (text.matches(Regex(time))) {
+            pattern = " HH:mm"
         }
-        val formatter = DateTimeFormatter.ofPattern(pattern, Locale.ENGLISH)
-        val date = LocalDate.parse(text, formatter)
+        // Check if formatChosen is english and parse as needed
+        if (formatChosen == "english") {
+            pattern = "MMM dd yyyy" + pattern
+            val textDateArray = text.split(" ").toMutableList()
+            // Change date if month is written in its full name
+            if (textDateArray[0].length > 3) {
+                val monthAbbreviated = textDateArray[0].substring(0, 3)
+                textDateArray[0] = monthAbbreviated
+                dateToParse = textDateArray.joinToString(" ")
+                formatter = DateTimeFormatter.ofPattern(pattern, Locale.ENGLISH)
+            } else {
+                formatter = DateTimeFormatter.ofPattern(pattern, Locale.ENGLISH)
+            }
+        } else {
+            pattern = formatChosen + pattern
+            formatter = DateTimeFormatter.ofPattern(pattern)
+        }
+        date = LocalDate.parse(dateToParse, formatter)
         return date
     }
 
@@ -288,7 +315,13 @@ class CameraFragment : Fragment() {
         val format = "^\\\$?(\\d{1,}(\\.\\d{2}))\$"
         for (text in textArray) {
             if (text.matches(Regex(format))) {
-                val cost = text.toDouble()
+                var cost = 0.00
+                if (text.contains("$")) {
+                    val substring = text.substring(1, text.length)
+                    cost = substring.toDouble()
+                } else {
+                    cost = text.toDouble()
+                }
                 if (maximum < cost) {
                     maximum = cost
                 }
