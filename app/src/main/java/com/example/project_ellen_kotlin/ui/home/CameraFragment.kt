@@ -1,7 +1,6 @@
 package com.example.project_ellen_kotlin.ui.home
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.Context
 import android.content.DialogInterface
@@ -27,6 +26,7 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import com.example.project_ellen_kotlin.MainActivity
+import com.example.project_ellen_kotlin.Operator
 import com.example.project_ellen_kotlin.Receipt
 import com.example.project_ellen_kotlin.databinding.FragmentCameraBinding
 import com.example.project_ellen_kotlin.ui.SharedViewModel
@@ -35,14 +35,10 @@ import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import java.io.File
 import java.text.SimpleDateFormat
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import java.util.Locale
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
-
-typealias CornersListener = () -> Unit
 
 // references:
 // https://developer.android.com/codelabs/camerax-getting-started#1
@@ -55,6 +51,7 @@ class CameraFragment : Fragment() {
     private var imageAnalyzer: ImageAnalysis? = null
     private lateinit var cameraProvider: ProcessCameraProvider
     private var camera: Camera? = null
+    private var operator: Operator = Operator()
 
     private lateinit var safeContext: Context
     private lateinit var activity: MainActivity
@@ -122,8 +119,6 @@ class CameraFragment : Fragment() {
         // Get a stable reference of the modifiable image capture use case
         val imageCapture = imageCapture ?: return
 
-        val imageAnalyzer = imageAnalyzer ?: return
-
         // Create time-stamped output file to hold the image
         val photoFile = File(
             outputDirectory,
@@ -155,11 +150,39 @@ class CameraFragment : Fragment() {
 //                            viewModel.updateImageUri(savedUri)
                             val bitmap = getBitMapFromUri(savedUri)
                             if (bitmap != null) {
-                                transformToReceipt(bitmap, savedUri)
+                                try {
+                                    receipt = transformToReceipt(bitmap, savedUri)
+                                } catch (e : Exception) {
+                                    val msg = "Photo capture failed: ${e.message}"
+                                    Toast.makeText(safeContext, msg, Toast.LENGTH_SHORT).show()
+                                    Log.e(TAG, msg)
+                                }
                             }
                 }
             }
         )
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun transformToReceipt(bitmap: Bitmap, uri : Uri) : Receipt? {
+        val visionImage = InputImage.fromBitmap(bitmap, 0)
+        val textRecognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+        var resultText = ""
+        var receipt: Receipt? = null
+        textRecognizer.process(visionImage)
+            .addOnSuccessListener { visionText ->
+                resultText = visionText.text
+                receipt = operator.parseResultText(resultText, bitmap, uri)
+                receipt?.let { userInputPurpose(it) }
+            }
+            .addOnFailureListener { e ->
+                Log.e(CameraFragment.TAG, "Text recognition failed: ${e.message}", e)
+            }
+        if (receipt != null) {
+            return receipt
+        } else {
+            return null
+        }
     }
 
     // Reference: ChatGPT
@@ -193,108 +216,6 @@ class CameraFragment : Fragment() {
             DialogInterface.OnClickListener { dialog, which -> dialog.cancel() })
 
         builder.show()
-    }
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    private fun createReceiptObject(date: Any, amount: Double, bitmap: Bitmap, uri: Uri): Receipt {
-        val receipt = Receipt(date, amount, "", uri)
-        receipt.setDate(date)
-        receipt.setPrice(amount)
-        receipt.setUri(uri)
-        receipt.setImageData(bitmap)
-        return receipt
-    }
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    private fun transformToReceipt(bitmap: Bitmap, uri : Uri) {
-        val visionImage = InputImage.fromBitmap(bitmap, 0)
-        val textRecognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
-        var resultText = ""
-        var receipt: Receipt? = null
-        textRecognizer.process(visionImage)
-            .addOnSuccessListener { visionText ->
-                resultText = visionText.text
-                receipt = parseResultText(resultText, bitmap, uri)
-                receipt?.let { userInputPurpose(it) }
-            }
-            .addOnFailureListener { e ->
-                Log.e(TAG, "Text recognition failed: ${e.message}", e)
-            }
-    }
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    private fun parseResultText(resultText: String, bitmap: Bitmap, uri: Uri): Receipt {
-        var textArray = resultText.split("\n")
-        // Look for total amount
-        val totalAmount = findTotalAmount(textArray)
-        if (totalAmount == 0.0) {
-            // update string saying "Enter Amount"
-        }
-        // Look for date
-        val date = findDate(textArray)
-        val receipt = createReceiptObject(date, totalAmount, bitmap, uri)
-        return receipt
-    }
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    @SuppressLint("SimpleDateFormat")
-    private fun findDate(textArray: List<String>): Any {
-        var text = ""
-        var formatChosen = ""
-
-        val formatDict = mapOf(
-            "dd-mm-yyyy" to "\\b\\d{2}-\\d{2}-\\d{4}\\b(?:\\s\\d{2}:\\d{2})?",
-            "mm/dd/yyyy" to "\\b\\d{2}/\\d{2}/\\d{4}\\b(?:\\s\\d{2}:\\d{2})?",
-            "yyyy.mm.dd" to "\\b\\d{4}\\.\\d{2}\\.\\d{2}\\b(?:\\s\\d{2}:\\d{2})?",
-            "dd/mm/yy" to "\\b\\d{2}/\\d{2}/\\d{2}\\b(?:\\s\\d{2}:\\d{2})?",
-            "dd-mm" to "\\b\\d{2}-\\d{2}\\b(?:\\s\\d{2}:\\d{2})?",
-            "yyyy/mm/dd" to "\\b\\d{4}/\\d{2}/\\d{2}\\b(?:\\s\\d{2}:\\d{2})?",
-            "english" to "^\\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|(O|0)ct|Nov|Dec) \\d{1,2} \\d{4}(\\s?\\d{2}:\\d{2})?"
-        )
-
-
-        for (t in textArray) {
-            for ((f, reg) in formatDict) {
-                if (t.matches(Regex(reg))) {
-                    text = t
-                    formatChosen = f
-                    break
-                }
-            }
-            if (text.length >= 10) {
-                break
-            }
-        }
-
-        val date = convertDate(formatDict, text, formatChosen)
-        return date
-    }
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    private fun convertDate(formatDict: Map<String, String>, text: String, formatChosen: String): Any {
-        var pattern = ""
-        if (formatChosen == "english") {
-            pattern = "MMM dd yyyy"
-        } else {
-            pattern = formatChosen
-        }
-        val formatter = DateTimeFormatter.ofPattern(pattern, Locale.ENGLISH)
-        val date = LocalDate.parse(text, formatter)
-        return date
-    }
-
-    private fun findTotalAmount(textArray: List<String>): Double {
-        var maximum = 0.00
-        val format = "^\\\$?(\\d{1,}(\\.\\d{2}))\$"
-        for (text in textArray) {
-            if (text.matches(Regex(format))) {
-                val cost = text.toDouble()
-                if (maximum < cost) {
-                    maximum = cost
-                }
-            }
-        }
-        return maximum
     }
 
     fun startCamera() {
@@ -354,7 +275,7 @@ class CameraFragment : Fragment() {
     }
 
     companion object {
-        private const val TAG = "CameraXApp"
+        const val TAG = "CameraXApp"
         private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
         internal const val REQUEST_CODE_PERMISSIONS = 10
         private val REQUIRED_PERMISSIONS =

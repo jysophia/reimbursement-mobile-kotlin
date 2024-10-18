@@ -70,21 +70,7 @@ class EmailFragment : Fragment() {
     }
 
     private fun sendEmail(recipient : String, subject : String, message : String, receipt: Receipt) {
-        val emailToSend = Email(receipt, recipient, subject, message)
-        val emailIntent = Intent(Intent.ACTION_SEND).apply {
-            type = "message/rfc822" // MIME type for email
-            putExtra(Intent.EXTRA_SUBJECT, "Subject of the email")
-            putExtra(Intent.EXTRA_TEXT, "Body of the email")
-            putExtra(Intent.EXTRA_STREAM, emailToSend.attachReceipt?.getUri()) // Attach the image URI
-            type = "image/*" // MIME type for sending images
-        }
 
-        if (emailIntent.resolveActivity(requireActivity().packageManager) != null) {
-            startActivity(Intent.createChooser(emailIntent, "Send Email"))
-        } else {
-            // Handle case where no email app is available
-            // You can show a message to the user here
-        }
     }
 
     override fun onDestroyView() {

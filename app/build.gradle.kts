@@ -75,8 +75,6 @@ dependencies {
     implementation("androidx.compose.material3:material3")
     implementation ("androidx.compose.material:material-icons-extended")
     implementation("io.coil-kt:coil:2.4.0")
-    // https://mvnrepository.com/artifact/com.google.code.gson/gson
-    implementation("com.google.code.gson:gson:2.10.1")
     testImplementation(libs.junit)
     testImplementation("org.mockito:mockito-core:5.11.0")
     testImplementation("androidx.test:rules:1.2.0")
