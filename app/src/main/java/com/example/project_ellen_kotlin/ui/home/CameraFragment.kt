@@ -27,6 +27,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import com.example.project_ellen_kotlin.MainActivity
 import com.example.project_ellen_kotlin.Operator
+import com.example.project_ellen_kotlin.ParserException
 import com.example.project_ellen_kotlin.Receipt
 import com.example.project_ellen_kotlin.databinding.FragmentCameraBinding
 import com.example.project_ellen_kotlin.ui.SharedViewModel
@@ -35,6 +36,8 @@ import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import java.io.File
 import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.Locale
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -172,17 +175,24 @@ class CameraFragment : Fragment() {
         textRecognizer.process(visionImage)
             .addOnSuccessListener { visionText ->
                 resultText = visionText.text
-                receipt = operator.parseResultText(resultText, bitmap, uri)
+                try {
+                    receipt = operator.parseResultText(resultText, bitmap, uri)
+                    receipt?.let { userConfirmDate(it) }
+                    receipt?.let { userConfirmCost(it) }
+                } catch (e: ParserException) {
+                    // prompt a UI to manually enter date or total amount
+                    receipt = operator.createReceiptObject("", 0.00, bitmap, uri)
+                    if (e.message != null) {
+                        receipt?.let{ userInputDate(it, e.message!! + " the date:") }
+                        receipt?.let{ userInputCost(it, e.message!! + " the total cost:") }
+                    }
+                }
                 receipt?.let { userInputPurpose(it) }
             }
             .addOnFailureListener { e ->
                 Log.e(CameraFragment.TAG, "Text recognition failed: ${e.message}", e)
             }
-        if (receipt != null) {
-            return receipt
-        } else {
-            return null
-        }
+        return receipt
     }
 
     // Reference: ChatGPT
@@ -193,10 +203,95 @@ class CameraFragment : Fragment() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun userConfirmDate(receipt: Receipt) {
+        val builder: AlertDialog.Builder = AlertDialog.Builder(safeContext)
+        builder.setTitle("Is this the correct date?\n" + receipt.getDate())
+
+        builder.setPositiveButton("Yes",
+            DialogInterface.OnClickListener { dialog, which ->
+                dialog.cancel()
+            })
+        builder.setNegativeButton("No",
+            DialogInterface.OnClickListener { dialog, which ->
+                val message = "Enter the date on the receipt here in the format yyyy-MM-dd:"
+                userInputDate(receipt, message)
+            })
+
+        builder.show()
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun userInputDate(receipt: Receipt, message: String) {
+        val builder: AlertDialog.Builder = AlertDialog.Builder(safeContext)
+        builder.setTitle(message)
+        // Set up the input
+        val input = EditText(safeContext)
+        input.setInputType(InputType.TYPE_CLASS_TEXT)
+        builder.setView(input)
+
+        builder.setPositiveButton("Add date",
+            DialogInterface.OnClickListener { dialog, which ->
+                val dateToParse = input.getText().toString()
+                val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+                val date = LocalDate.parse(dateToParse, formatter)
+                receipt.setDate(date)
+                viewModel.addReceipt(receipt)
+                receipt.getUri().let { viewModel.updateImageUri(it) }
+            })
+        builder.setNegativeButton("Try again",
+            DialogInterface.OnClickListener { dialog, which ->
+                dialog.cancel()
+            })
+
+        builder.show()
+    }
+
+    private fun userConfirmCost(receipt: Receipt) {
+        val builder: AlertDialog.Builder = AlertDialog.Builder(safeContext)
+        builder.setTitle("Is this the correct total cost?\n" + receipt.getCost())
+
+        builder.setPositiveButton("Yes",
+            DialogInterface.OnClickListener { dialog, which ->
+                viewModel.addReceipt(receipt)
+                receipt.getUri().let { viewModel.updateImageUri(it) }
+            })
+        builder.setNegativeButton("No",
+            DialogInterface.OnClickListener { dialog, which ->
+                val message = "Enter the total cost below:"
+                userInputCost(receipt, message)
+            })
+
+        builder.show()
+    }
+
+    private fun userInputCost(receipt: Receipt, message: String) {
+        val builder: AlertDialog.Builder = AlertDialog.Builder(safeContext)
+        builder.setTitle(message)
+        // Set up the input
+        val input = EditText(safeContext)
+        input.setInputType(InputType.TYPE_CLASS_TEXT)
+        builder.setView(input)
+
+        builder.setPositiveButton("Add cost",
+            DialogInterface.OnClickListener { dialog, which ->
+                val cost = input.getText().toString().toDouble()
+                receipt.setCost(cost)
+                viewModel.addReceipt(receipt)
+                receipt.getUri().let { viewModel.updateImageUri(it) }
+            })
+        builder.setNegativeButton("Try again",
+            DialogInterface.OnClickListener { dialog, which ->
+                dialog.cancel()
+            })
+
+        builder.show()
+    }
+
     private fun userInputPurpose(receipt: Receipt) {
         var purpose = ""
         val builder: AlertDialog.Builder = AlertDialog.Builder(safeContext)
-        builder.setTitle("Enter the purpose of this receipt")
+        builder.setTitle("Enter the purpose of this receipt:")
 
         // Set up the input
         val input = EditText(safeContext)
@@ -210,7 +305,7 @@ class CameraFragment : Fragment() {
                 purpose = input.getText().toString()
                 receipt.setPurpose(purpose)
                 viewModel.addReceipt(receipt)
-                receipt.getUri()?.let { viewModel.updateImageUri(it) }
+                receipt.getUri().let { viewModel.updateImageUri(it) }
             })
         builder.setNegativeButton("Cancel",
             DialogInterface.OnClickListener { dialog, which -> dialog.cancel() })

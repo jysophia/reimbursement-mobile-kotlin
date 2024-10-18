@@ -58,6 +58,7 @@ class Operator {
             "MM-dd-yyyy" to "\\b$month-$day-$year$optionalTime",
             "MM/dd/yyyy" to "\\b$month/$day/$year$optionalTime",
             "dd/MM/yyyy" to "\\b$day/$month/$year$optionalTime",
+            "MM/dd/yyyy" to "\\b$month/$day/$year$optionalTime",
             "yyyy/MM/dd" to "\\b$year/$month/$day$optionalTime",
             "yyyy.MM.dd" to "\\b$year\\.$month\\.$day$optionalTime",
             "english" to "\\b(?:Jan(uary)?|Feb(ruary)?|Mar(ch)?|Apr(il)?|May|Jun(e)?|Jul(y)?|Aug(ust)?|Sep(t|tember)?|(O|0)ct(ober)?|Nov(ember)?|Dec(ember)?) $day $year$optionalTime"
@@ -77,18 +78,22 @@ class Operator {
             }
         }
 
-        val date = convertDate(formatDict, text, formatChosen)
+        if (text == "" && formatChosen == "") {
+            throw ParserException("Unable to parse receipt, please try again or enter")
+        }
+
+        val date = convertDate(text, formatChosen)
         return date
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    private fun convertDate(formatDict: Map<String, String>, text: String, formatChosen: String): Any {
+    private fun convertDate(text: String, formatChosen: String): Any {
         var pattern = formatChosen
         var dateToParse = text
         var formatter : Any
         val date : Any
         // Check if there is time included in text
-        val time = ".*\\b\\d{1,2}:\\d{2}(?:\\s[AP]M)?\\b.*"
+        val time = ".*\\b\\d{1,2}:\\d{2}(:\\d{2})?(?:\\s[AP]M)?\\b.*\n"
         var textDateArray = text.split(" ").toMutableList()
         // Remove time from date
         if (text.matches(Regex(time))) {
@@ -125,10 +130,10 @@ class Operator {
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    private fun createReceiptObject(date: Any, amount: Double, bitmap: Bitmap, uri: Uri): Receipt {
+    fun createReceiptObject(date: Any, amount: Double, bitmap: Bitmap, uri: Uri): Receipt {
         val receipt = Receipt(date, amount, "", uri)
         receipt.setDate(date)
-        receipt.setPrice(amount)
+        receipt.setCost(amount)
         receipt.setUri(uri)
         receipt.setImageData(bitmap)
         return receipt
