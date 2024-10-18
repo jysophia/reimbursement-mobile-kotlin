@@ -4,12 +4,7 @@ import android.annotation.SuppressLint
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
-import com.example.project_ellen_kotlin.ui.home.CameraFragment
-import com.google.mlkit.vision.common.InputImage
-import com.google.mlkit.vision.text.TextRecognition
-import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
