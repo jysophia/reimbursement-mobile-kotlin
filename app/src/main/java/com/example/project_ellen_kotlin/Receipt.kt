@@ -2,10 +2,6 @@ package com.example.project_ellen_kotlin
 
 import android.graphics.Bitmap
 import android.net.Uri
-import android.os.Build
-import androidx.annotation.RequiresApi
-import androidx.camera.core.ImageCapture
-import java.time.LocalDate
 
 data class Receipt(val newDate: Any, val newPrice: Double, val newPurpose: String, val newUri: Uri?) {
     private lateinit var date : Any
@@ -42,7 +38,7 @@ data class Receipt(val newDate: Any, val newPrice: Double, val newPurpose: Strin
         uri = updatedUri
     }
 
-    fun getUri() : Uri? {
+    fun getUri() : Uri {
         return uri
     }
 
@@ -50,7 +46,7 @@ data class Receipt(val newDate: Any, val newPrice: Double, val newPurpose: Strin
         imageData = bitmap
     }
 
-    fun getImageData() : Bitmap? {
+    fun getImageData() : Bitmap {
         return imageData
     }
 

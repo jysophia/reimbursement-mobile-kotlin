@@ -27,12 +27,14 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import com.example.project_ellen_kotlin.MainActivity
+import com.example.project_ellen_kotlin.Operator
 import com.example.project_ellen_kotlin.Receipt
 import com.example.project_ellen_kotlin.databinding.FragmentCameraBinding
 import com.example.project_ellen_kotlin.ui.SharedViewModel
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
+import com.google.type.DateTime
 import java.io.File
 import java.text.SimpleDateFormat
 import java.time.LocalDate
@@ -41,8 +43,6 @@ import java.util.Locale
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
-
-typealias CornersListener = () -> Unit
 
 // references:
 // https://developer.android.com/codelabs/camerax-getting-started#1
@@ -55,6 +55,7 @@ class CameraFragment : Fragment() {
     private var imageAnalyzer: ImageAnalysis? = null
     private lateinit var cameraProvider: ProcessCameraProvider
     private var camera: Camera? = null
+    private var operator: Operator = Operator()
 
     private lateinit var safeContext: Context
     private lateinit var activity: MainActivity
@@ -122,8 +123,6 @@ class CameraFragment : Fragment() {
         // Get a stable reference of the modifiable image capture use case
         val imageCapture = imageCapture ?: return
 
-        val imageAnalyzer = imageAnalyzer ?: return
-
         // Create time-stamped output file to hold the image
         val photoFile = File(
             outputDirectory,
@@ -156,7 +155,7 @@ class CameraFragment : Fragment() {
                             val bitmap = getBitMapFromUri(savedUri)
                             if (bitmap != null) {
                                 try {
-                                    transformToReceipt(bitmap, savedUri)
+                                    receipt = transformToReceipt(bitmap, savedUri)
                                 } catch (e : Exception) {
                                     val msg = "Photo capture failed: ${e.message}"
                                     Toast.makeText(safeContext, msg, Toast.LENGTH_SHORT).show()
@@ -166,6 +165,28 @@ class CameraFragment : Fragment() {
                 }
             }
         )
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun transformToReceipt(bitmap: Bitmap, uri : Uri) : Receipt? {
+        val visionImage = InputImage.fromBitmap(bitmap, 0)
+        val textRecognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+        var resultText = ""
+        var receipt: Receipt? = null
+        textRecognizer.process(visionImage)
+            .addOnSuccessListener { visionText ->
+                resultText = visionText.text
+                receipt = operator.parseResultText(resultText, bitmap, uri)
+                receipt?.let { userInputPurpose(it) }
+            }
+            .addOnFailureListener { e ->
+                Log.e(CameraFragment.TAG, "Text recognition failed: ${e.message}", e)
+            }
+        if (receipt != null) {
+            return receipt
+        } else {
+            return null
+        }
     }
 
     // Reference: ChatGPT
@@ -199,135 +220,6 @@ class CameraFragment : Fragment() {
             DialogInterface.OnClickListener { dialog, which -> dialog.cancel() })
 
         builder.show()
-    }
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    private fun createReceiptObject(date: Any, amount: Double, bitmap: Bitmap, uri: Uri): Receipt {
-        val receipt = Receipt(date, amount, "", uri)
-        receipt.setDate(date)
-        receipt.setPrice(amount)
-        receipt.setUri(uri)
-        receipt.setImageData(bitmap)
-        return receipt
-    }
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    private fun transformToReceipt(bitmap: Bitmap, uri : Uri) {
-        val visionImage = InputImage.fromBitmap(bitmap, 0)
-        val textRecognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
-        var resultText = ""
-        var receipt: Receipt? = null
-        textRecognizer.process(visionImage)
-            .addOnSuccessListener { visionText ->
-                resultText = visionText.text
-                receipt = parseResultText(resultText, bitmap, uri)
-                receipt?.let { userInputPurpose(it) }
-            }
-            .addOnFailureListener { e ->
-                Log.e(TAG, "Text recognition failed: ${e.message}", e)
-            }
-    }
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    private fun parseResultText(resultText: String, bitmap: Bitmap, uri: Uri): Receipt {
-        var textArray = resultText.split("\n")
-        // Look for total amount
-        val totalAmount = findTotalAmount(textArray)
-        // Look for date
-        val date = findDate(textArray)
-        val receipt = createReceiptObject(date, totalAmount, bitmap, uri)
-        return receipt
-    }
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    @SuppressLint("SimpleDateFormat")
-    private fun findDate(textArray: List<String>): Any {
-        var text = ""
-        var formatChosen = ""
-        val day = "(0?[1-9]|1[0-9]|2[0-9]|3[0-1])"
-        val month = "(0?[1-9]|1[0-2])"
-        val year = "(202[4-9]|20[3-9]\\d|2100|2[1-9]\\d{2}|3000)"
-        val optionalTime = "\\b(?:\\s\\d{2}:\\d{2})?"
-
-        val formatDict = mapOf(
-            "yyyy-MM-dd" to "\\b$year-$month-$day$optionalTime",
-            "dd-MM-yyyy" to "\\b$day-$month-$year$optionalTime",
-            "MM-dd-yyyy" to "\\b$month-$day-$year$optionalTime",
-            "MM/dd/yyyy" to "\\b$month/$day/$year$optionalTime",
-            "dd/MM/yyyy" to "\\b$day/$month/$year$optionalTime",
-            "yyyy/MM/dd" to "\\b$year/$month/$day$optionalTime",
-            "yyyy.MM.dd" to "\\b$year\\.$month\\.$day$optionalTime",
-            "english" to "\\b(?:Jan(uary)?|Feb(ruary)?|Mar(ch)?|Apr(il)?|May|Jun(e)?|Jul(y)?|Aug(ust)?|Sep(t|tember)?|(O|0)ct(ober)?|Nov(ember)?|Dec(ember)?) $day $year$optionalTime"
-        )
-
-
-        for (t in textArray) {
-            for ((f, reg) in formatDict) {
-                if (t.matches(Regex(reg))) {
-                    text = t
-                    formatChosen = f
-                    break
-                }
-            }
-            if (text.length >= 10) {
-                break
-            }
-        }
-
-        val date = convertDate(formatDict, text, formatChosen)
-        return date
-    }
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    private fun convertDate(formatDict: Map<String, String>, text: String, formatChosen: String): Any {
-        var pattern = ""
-        var dateToParse = text
-        val formatter : Any
-        val date : Any
-        // Check if there is time included in text
-        val time = ".*\\b\\d{2}:\\d{2}\\b.*"
-        if (text.matches(Regex(time))) {
-            pattern = " HH:mm"
-        }
-        // Check if formatChosen is english and parse as needed
-        if (formatChosen == "english") {
-            pattern = "MMM dd yyyy" + pattern
-            val textDateArray = text.split(" ").toMutableList()
-            // Change date if month is written in its full name
-            if (textDateArray[0].length > 3) {
-                val monthAbbreviated = textDateArray[0].substring(0, 3)
-                textDateArray[0] = monthAbbreviated
-                dateToParse = textDateArray.joinToString(" ")
-                formatter = DateTimeFormatter.ofPattern(pattern, Locale.ENGLISH)
-            } else {
-                formatter = DateTimeFormatter.ofPattern(pattern, Locale.ENGLISH)
-            }
-        } else {
-            pattern = formatChosen + pattern
-            formatter = DateTimeFormatter.ofPattern(pattern)
-        }
-        date = LocalDate.parse(dateToParse, formatter)
-        return date
-    }
-
-    private fun findTotalAmount(textArray: List<String>): Double {
-        var maximum = 0.00
-        val format = "^\\\$?(\\d{1,}(\\.\\d{2}))\$"
-        for (text in textArray) {
-            if (text.matches(Regex(format))) {
-                var cost = 0.00
-                if (text.contains("$")) {
-                    val substring = text.substring(1, text.length)
-                    cost = substring.toDouble()
-                } else {
-                    cost = text.toDouble()
-                }
-                if (maximum < cost) {
-                    maximum = cost
-                }
-            }
-        }
-        return maximum
     }
 
     fun startCamera() {
@@ -387,7 +279,7 @@ class CameraFragment : Fragment() {
     }
 
     companion object {
-        private const val TAG = "CameraXApp"
+        const val TAG = "CameraXApp"
         private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
         internal const val REQUEST_CODE_PERMISSIONS = 10
         private val REQUIRED_PERMISSIONS =
