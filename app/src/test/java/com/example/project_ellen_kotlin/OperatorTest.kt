@@ -148,4 +148,12 @@ class OperatorTest {
         val amount = operator.findTotalAmount(textArray)
         assertEquals(118.43, amount, 0.0)
     }
+
+    @Test
+    fun testFindTotalAmountCashPayment() {
+        val resultText = loadResultText("sampleResultText/resultTextTotalAmountCashPayment")
+        val textArray = resultText.split("\n")
+        val amount = operator.findTotalAmount(textArray)
+        assertEquals(8.63, amount, 0.0)
+    }
 }

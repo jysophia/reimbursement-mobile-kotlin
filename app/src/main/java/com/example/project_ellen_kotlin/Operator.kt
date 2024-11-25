@@ -42,8 +42,7 @@ class Operator {
 
     fun findTotalAmount(lines: List<String>): Double {
         val format = Regex("^\\\$?(\\d{1,}(\\.\\d{2}))\$")
-        val cardPaymentKeywords = listOf("payment", "total")
-        val cashPaymentKeywords = listOf("change due", "cash usd", "cash cad")
+        val cashPaymentKeywords = listOf("change due", "cash usd", "cash cad", "cash", "change")
         if (lines.any { line -> cashPaymentKeywords.contains(line.lowercase())}) {
             return cashPayment(lines, format)
         } else {
