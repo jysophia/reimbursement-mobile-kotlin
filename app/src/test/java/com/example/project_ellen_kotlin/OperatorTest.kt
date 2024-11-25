@@ -10,6 +10,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import java.io.BufferedReader
 import java.io.InputStreamReader
+import kotlin.test.assertFailsWith
 
 @RunWith(RobolectricTestRunner::class)
 class OperatorTest {
@@ -117,6 +118,19 @@ class OperatorTest {
         val date = operator.findDate(textArray)
         val finalDateString = date.toString()
         assertEquals("2024-08-30", finalDateString)
+    }
+
+    @Test
+    fun testParserExceptionWrongEnglishDate() {
+        val resultText = loadResultText("sampleResultText/resultTextWrongEnglishDate")
+        val textArray = resultText.split("\n")
+
+        assertFailsWith<ParserException>(
+            message = "No exception found",
+            block = {
+                operator.findDate(textArray)
+            }
+        )
     }
 
     @Test

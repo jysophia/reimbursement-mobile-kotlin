@@ -27,7 +27,6 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import com.example.project_ellen_kotlin.MainActivity
 import com.example.project_ellen_kotlin.Operator
-import com.example.project_ellen_kotlin.ParserException
 import com.example.project_ellen_kotlin.Receipt
 import com.example.project_ellen_kotlin.databinding.FragmentCameraBinding
 import com.example.project_ellen_kotlin.ui.SharedViewModel
@@ -175,18 +174,9 @@ class CameraFragment : Fragment() {
         textRecognizer.process(visionImage)
             .addOnSuccessListener { visionText ->
                 resultText = visionText.text
-                try {
-                    receipt = operator.parseResultText(resultText, bitmap, uri)
-                    receipt?.let { userConfirmDate(it) }
-                    receipt?.let { userConfirmCost(it) }
-                } catch (e: ParserException) {
-                    // prompt a UI to manually enter date or total amount
-                    receipt = operator.createReceiptObject("", 0.00, bitmap, uri)
-                    if (e.message != null) {
-                        receipt?.let{ userInputDate(it, e.message!! + " the date:") }
-                        receipt?.let{ userInputCost(it, e.message!! + " the total cost:") }
-                    }
-                }
+                receipt = operator.createReceiptObject(resultText, bitmap, uri)
+                receipt?.let { userConfirmDate(it) }
+                receipt?.let { userConfirmCost(it) }
                 receipt?.let { userInputPurpose(it) }
             }
             .addOnFailureListener { e ->
