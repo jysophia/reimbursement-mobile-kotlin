@@ -12,7 +12,7 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.PopupMenu
 import android.widget.TextView
-import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
@@ -55,26 +55,68 @@ class ReceiptFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val receiptList: LinearLayout = view.findViewById(R.id.receiptList)
+        val receiptContainer: LinearLayout = view.findViewById(R.id.receiptContainer)
+
+//        val receiptDescription: TextView = view.findViewById(R.id.receipt_description)
+//        val receiptCost: TextView = view.findViewById(R.id.cost)
+//        val receiptDate: TextView = view.findViewById(R.id.date)
+
+        viewModel.receipts.observe(viewLifecycleOwner, Observer { receipts ->
+            for (receipt in receipts) {
+                val receiptView = createReceiptView(receipt)
+                receiptContainer.addView(receiptView)
+            }
+//            updateReceiptList(receiptContainer, receiptDescription, receiptCost, receiptDate, receipts)
+        })
+    }
+
+    private fun createReceiptView(receipt: Receipt): View {
+        // Create a new LinearLayout
+        val receiptLayout = LinearLayout(safeContext).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+            background = ContextCompat.getDrawable(safeContext, R.drawable.white_background)
+        }
+
+        // CreateTextViews for description, date, and cost
+        val descriptionTextView = TextView(safeContext).apply {
+            text = receipt.getDescription()
+            textSize = 16f
+            setTextColor(ContextCompat.getColor(safeContext, R.color.black))
+        }
+
+        val dateTextView = TextView(safeContext).apply {
+            text = receipt.getDate().toString()
+            textSize = 14f
+            setTextColor(ContextCompat.getColor(context, R.color.black))
+        }
+
+        val priceTextView = TextView(safeContext).apply {
+            text = receipt.getCost().toString()
+            textSize = 16f
+            setTextColor(ContextCompat.getColor(context, R.color.black))
+        }
+
+        // Add TextViews to the LinearLayout
+        receiptLayout.addView(descriptionTextView)
+        receiptLayout.addView(dateTextView)
+        receiptLayout.addView(priceTextView)
 
         // Handle click event
-        receiptList.setOnClickListener {
+        receiptLayout.setOnClickListener {
             showReceiptImage()
         }
 
         // Handle long-click event
-        receiptList.setOnLongClickListener {
-            showPopupMenu(view) // Return true to indicate the event is consumed
+        receiptLayout.setOnLongClickListener {
+            view?.let { v -> showPopupMenu(v) } // Return true to indicate the event is consumed
             true
         }
 
-        val receiptDescription: TextView = view.findViewById(R.id.receipt_description)
-        val receiptCost: TextView = view.findViewById(R.id.cost)
-        val receiptDate: TextView = view.findViewById(R.id.date)
-
-        viewModel.receipt.observe(viewLifecycleOwner, Observer { receipt ->
-            updateReceiptList(receiptList, receiptDescription, receiptCost, receiptDate, receipt)
-        })
+        return receiptLayout
     }
 
     private fun showReceiptImage() {
@@ -99,7 +141,7 @@ class ReceiptFragment : Fragment() {
     private fun updateReceiptList(receiptList: LinearLayout, description: TextView, cost: TextView, date: TextView, receipt: Receipt) {
 
         val textView = TextView(safeContext).apply{
-            description.text = receipt.getPurpose()
+            description.text = receipt.getDescription()
             cost.text = receipt.getCost().toString()
             date.text = receipt.getDate().toString()
             layoutParams = LinearLayout.LayoutParams(
@@ -149,7 +191,7 @@ class ReceiptFragment : Fragment() {
         builder.setTitle("Receipt Information")
         builder.setMessage("Date: " + lor[0].getDate() +
                 "\nPrice: " + lor[0].getCost() + "\n" +
-                "Purpose: " + lor[0].getPurpose() + "\n")
+                "Purpose: " + lor[0].getDescription() + "\n")
         builder.setPositiveButton("OK") { dialog, _ -> dialog.dismiss() }
         builder.show()
     }
@@ -158,7 +200,7 @@ class ReceiptFragment : Fragment() {
         val lor = viewModel.retrieveListOfReceipts()
         val message = "Attached is the following receipt: \n" +
                 "Date: " + lor[0].getDate() + "\n" +
-                "Purpose: " + lor[0].getPurpose() + "\n" +
+                "Purpose: " + lor[0].getDescription() + "\n" +
                 "Amount Paid: " + lor[0].getCost() + "\n"
         val email = Email(lor[0], "", "", message)
 //        email.setMessage(message)

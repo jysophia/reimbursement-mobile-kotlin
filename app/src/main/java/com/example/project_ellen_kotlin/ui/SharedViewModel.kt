@@ -10,9 +10,7 @@ import com.example.project_ellen_kotlin.Receipt
 class SharedViewModel : ViewModel() {
 
     private val _imageUri = MutableLiveData<Uri>()
-    val receipt: MutableLiveData<Receipt> by lazy {
-        MutableLiveData<Receipt>()
-    }
+    val receipts = MutableLiveData<List<Receipt>>(mutableListOf())
 
     private val _emailMessage = MutableLiveData<String>()
     val emailMessage: LiveData<String> = _emailMessage
@@ -20,8 +18,8 @@ class SharedViewModel : ViewModel() {
     val listOfReceipts = mutableListOf<Receipt>()
 
     fun addReceipt(receipt: Receipt) {
-        this.receipt.value = receipt
         listOfReceipts.add(receipt)
+        receipts.value = listOfReceipts
     }
 
     fun retrieveListOfReceipts() : List<Receipt> {

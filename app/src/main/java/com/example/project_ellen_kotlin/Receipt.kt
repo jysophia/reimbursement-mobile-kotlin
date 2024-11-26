@@ -14,7 +14,7 @@ data class Receipt(val newDate: Any, val newPrice: Double, val newPurpose: Strin
         purpose = updatedPurpose
     }
 
-    fun getPurpose(): String {
+    fun getDescription(): String {
         return purpose
     }
 

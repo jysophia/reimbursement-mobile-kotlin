@@ -201,7 +201,7 @@
                         />
                 </LinearLayout>
                 <LinearLayout
-                    android:id="@+id/receiptList"
+                    android:id="@+id/receiptContainer"
                     android:layout_width="match_parent"
                     android:layout_height="84dp"
                     android:background="@drawable/white_background"
