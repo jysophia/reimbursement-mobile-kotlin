@@ -78,6 +78,9 @@ class ReceiptFragment : Fragment() {
             ).apply {
                 setMargins(12, 17, 12, 17)
             }
+            clipChildren = false
+            clipToPadding = false
+            orientation = LinearLayout.VERTICAL
         }
 
         // Get the month
@@ -90,10 +93,10 @@ class ReceiptFragment : Fragment() {
         val month = DateFormatSymbols(Locale.getDefault()).months[monthIndex]
 
         val monthlyText = TextView(safeContext).apply{
-            setTextColor(ContextCompat.getColor(context, R.color.shadow))
-            textSize = 16f
-            setTextColor(ContextCompat.getColor(safeContext, R.color.black))
             text = "$month $year"
+            setTextColor(ContextCompat.getColor(context, R.color.shadow))
+            textSize = 15f
+            setTextColor(ContextCompat.getColor(safeContext, R.color.black))
         }
 
         // Create a horizontal container for image and texts

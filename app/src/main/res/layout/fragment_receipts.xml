@@ -192,13 +192,6 @@
                     android:clipToPadding="false"
                     android:orientation="vertical"
                     android:visibility="invisible">
-                    <TextView
-                        android:id="@+id/receiptSectionTitle"
-                        android:textColor="@color/shadow"
-                        android:textSize="@dimen/fontsize_label_small"
-                        android:layout_height="wrap_content"
-                        android:layout_width="wrap_content"
-                        />
                 </LinearLayout>
 
                 <LinearLayout
