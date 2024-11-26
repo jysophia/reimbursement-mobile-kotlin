@@ -10,6 +10,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import java.io.BufferedReader
 import java.io.InputStreamReader
+import kotlin.test.assertFailsWith
 
 @RunWith(RobolectricTestRunner::class)
 class OperatorTest {
@@ -120,6 +121,19 @@ class OperatorTest {
     }
 
     @Test
+    fun testParserExceptionWrongEnglishDate() {
+        val resultText = loadResultText("sampleResultText/resultTextWrongEnglishDate")
+        val textArray = resultText.split("\n")
+
+        assertFailsWith<ParserException>(
+            message = "No exception found",
+            block = {
+                operator.findDate(textArray)
+            }
+        )
+    }
+
+    @Test
     fun testFindTotalAmountWithDollarSign() {
         val resultText = loadResultText("sampleResultText/resultTextTotalAmountWithDollarSign")
         val textArray = resultText.split("\n")
@@ -133,5 +147,13 @@ class OperatorTest {
         val textArray = resultText.split("\n")
         val amount = operator.findTotalAmount(textArray)
         assertEquals(118.43, amount, 0.0)
+    }
+
+    @Test
+    fun testFindTotalAmountCashPayment() {
+        val resultText = loadResultText("sampleResultText/resultTextTotalAmountCashPayment")
+        val textArray = resultText.split("\n")
+        val amount = operator.findTotalAmount(textArray)
+        assertEquals(8.63, amount, 0.0)
     }
 }

@@ -35,9 +35,13 @@ import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import java.io.File
 import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.Locale
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import android.app.DatePickerDialog
+import java.util.Calendar
 
 
 // references:
@@ -147,7 +151,6 @@ class CameraFragment : Fragment() {
                 override fun
                         onImageSaved(output: ImageCapture.OutputFileResults){
                             val savedUri = Uri.fromFile(photoFile)
-//                            viewModel.updateImageUri(savedUri)
                             val bitmap = getBitMapFromUri(savedUri)
                             if (bitmap != null) {
                                 try {
@@ -172,17 +175,20 @@ class CameraFragment : Fragment() {
         textRecognizer.process(visionImage)
             .addOnSuccessListener { visionText ->
                 resultText = visionText.text
-                receipt = operator.parseResultText(resultText, bitmap, uri)
-                receipt?.let { userInputPurpose(it) }
+                receipt = operator.createReceiptObject(resultText, bitmap, uri)
+                receipt?.let { userConfirmAndInputDetails(it) }
             }
             .addOnFailureListener { e ->
                 Log.e(CameraFragment.TAG, "Text recognition failed: ${e.message}", e)
             }
-        if (receipt != null) {
-            return receipt
-        } else {
-            return null
-        }
+        return receipt
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun userConfirmAndInputDetails(it: Receipt) {
+        userConfirmDate(it)
+        userConfirmCost(it)
+        userInputPurpose(it)
     }
 
     // Reference: ChatGPT
@@ -193,10 +199,96 @@ class CameraFragment : Fragment() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun userConfirmDate(receipt: Receipt) {
+        val builder: AlertDialog.Builder = AlertDialog.Builder(safeContext)
+        builder.setTitle("Is this the correct date?\n" + receipt.getDate())
+
+        builder.setPositiveButton("Yes",
+            DialogInterface.OnClickListener { dialog, which ->
+                viewModel.addReceipt(receipt)
+                receipt.getUri().let { viewModel.updateImageUri(it) }
+            })
+        builder.setNegativeButton("No",
+            DialogInterface.OnClickListener { dialog, which ->
+                userInputDate(receipt)
+            })
+
+        builder.show()
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun userInputDate(receipt: Receipt) {
+        // Initialize the Calendar instance
+        val calendar = Calendar.getInstance()
+        val year = calendar.get(Calendar.YEAR)
+        val month = calendar.get(Calendar.MONTH)
+        val day = calendar.get(Calendar.DAY_OF_MONTH)
+
+        // Create and show DatePickerDialog
+        val datePickerDialog = DatePickerDialog(
+            safeContext,
+            { _, year, monthOfYear, dayOfMonth ->
+                // Construct the selected date
+                var selectedDate = "$year-${monthOfYear + 1}-$dayOfMonth"
+                if ("$dayOfMonth".length == 1) {
+                    selectedDate = "$year-${monthOfYear + 1}-0$dayOfMonth"
+                }
+                // Parse the selected date
+                val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+                val date = LocalDate.parse(selectedDate, formatter)
+                receipt.setDate(date)
+                viewModel.addReceipt(receipt)
+                receipt.getUri().let { viewModel.updateImageUri(it) }
+            },
+            year, month, day
+        )
+
+        // Show the DatePickerDialog
+        datePickerDialog.show()
+
+    }
+
+    private fun userConfirmCost(receipt: Receipt) {
+        val builder: AlertDialog.Builder = AlertDialog.Builder(safeContext)
+        builder.setTitle("Is this the correct total cost?\n" + receipt.getCost())
+
+        builder.setPositiveButton("Yes",
+            DialogInterface.OnClickListener { dialog, which ->
+            })
+        builder.setNegativeButton("No",
+            DialogInterface.OnClickListener { dialog, which ->
+                userInputCost(receipt)
+            })
+
+        builder.show()
+    }
+
+    private fun userInputCost(receipt: Receipt) {
+        val builder: AlertDialog.Builder = AlertDialog.Builder(safeContext)
+        builder.setTitle("Enter the total cost below:")
+        // Set up the input
+        val input = EditText(safeContext)
+        input.setInputType(InputType.TYPE_CLASS_TEXT)
+        builder.setView(input)
+
+        builder.setPositiveButton("Add cost",
+            DialogInterface.OnClickListener { dialog, which ->
+                val cost = input.getText().toString().toDouble()
+                receipt.setCost(cost)
+            })
+        builder.setNegativeButton("Try again",
+            DialogInterface.OnClickListener { dialog, which ->
+                dialog.cancel()
+            })
+
+        builder.show()
+    }
+
     private fun userInputPurpose(receipt: Receipt) {
         var purpose = ""
         val builder: AlertDialog.Builder = AlertDialog.Builder(safeContext)
-        builder.setTitle("Enter the purpose of this receipt")
+        builder.setTitle("Add a description for this receipt:")
 
         // Set up the input
         val input = EditText(safeContext)
@@ -209,8 +301,6 @@ class CameraFragment : Fragment() {
             DialogInterface.OnClickListener { dialog, which ->
                 purpose = input.getText().toString()
                 receipt.setPurpose(purpose)
-                viewModel.addReceipt(receipt)
-                receipt.getUri()?.let { viewModel.updateImageUri(it) }
             })
         builder.setNegativeButton("Cancel",
             DialogInterface.OnClickListener { dialog, which -> dialog.cancel() })

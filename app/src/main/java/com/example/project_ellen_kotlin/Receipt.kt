@@ -26,11 +26,11 @@ data class Receipt(val newDate: Any, val newPrice: Double, val newPurpose: Strin
         return date
     }
 
-    fun setPrice(updatedPrice: Double) {
+    fun setCost(updatedPrice: Double) {
         price = updatedPrice
     }
 
-    fun getPrice() : Double {
+    fun getCost() : Double {
         return price
     }
 

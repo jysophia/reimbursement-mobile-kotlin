@@ -108,7 +108,7 @@ class DashboardFragment : Fragment() {
         val builder: AlertDialog.Builder = AlertDialog.Builder(safeContext)
         builder.setTitle("Receipt Information")
         builder.setMessage("Date: " + lor[0].getDate() +
-                "\nPrice: " + lor[0].getPrice() + "\n" +
+                "\nPrice: " + lor[0].getCost() + "\n" +
                 "Purpose: " + lor[0].getPurpose() + "\n")
         builder.setPositiveButton("OK") { dialog, _ -> dialog.dismiss() }
         builder.show()
@@ -119,7 +119,7 @@ class DashboardFragment : Fragment() {
         val message = "Attached is the following receipt: \n" +
                 "Date: " + lor[0].getDate() + "\n" +
                 "Purpose: " + lor[0].getPurpose() + "\n" +
-                "Amount Paid: " + lor[0].getPrice() + "\n"
+                "Amount Paid: " + lor[0].getCost() + "\n"
         val email = Email(lor[0], "", "", message)
 //        email.setMessage(message)
         viewModel.setupEmail(email)
