@@ -1,4 +1,4 @@
-package com.example.project_ellen_kotlin.ui.home
+package com.example.project_ellen_kotlin.ui.camera
 
 import android.Manifest
 import android.app.AlertDialog

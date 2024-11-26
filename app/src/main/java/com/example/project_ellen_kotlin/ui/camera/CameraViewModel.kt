@@ -1,11 +1,10 @@
-package com.example.project_ellen_kotlin.ui.home
+package com.example.project_ellen_kotlin.ui.camera
 
-import android.hardware.camera2.CameraDevice
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 
-class HomeViewModel : ViewModel() {
+class CameraViewModel : ViewModel() {
 
     private val _text = MutableLiveData<String>().apply {
         value = "This is home Fragment"

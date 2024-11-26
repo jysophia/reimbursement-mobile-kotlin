@@ -1,4 +1,4 @@
-package com.example.project_ellen_kotlin.ui.dashboard
+package com.example.project_ellen_kotlin.ui.receipts
 
 import android.app.AlertDialog
 import android.content.Context
@@ -8,21 +8,23 @@ import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.PopupMenu
+import android.widget.TextView
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
-import coil.load
 import com.example.project_ellen_kotlin.Email
 import com.example.project_ellen_kotlin.MainActivity
 import com.example.project_ellen_kotlin.R
-import com.example.project_ellen_kotlin.databinding.FragmentDashboardBinding
+import com.example.project_ellen_kotlin.databinding.FragmentReceiptsBinding
 import com.example.project_ellen_kotlin.ui.SharedViewModel
+import com.example.project_ellen_kotlin.Receipt
 
-class DashboardFragment : Fragment() {
+class ReceiptFragment : Fragment() {
 
-    private var _binding: FragmentDashboardBinding? = null
+    private var _binding: FragmentReceiptsBinding? = null
     private lateinit var activity: MainActivity
     private lateinit var safeContext: Context
     private val viewModel: SharedViewModel by activityViewModels()
@@ -43,32 +45,51 @@ class DashboardFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
 
-        _binding = FragmentDashboardBinding.inflate(inflater, container, false)
+        _binding = FragmentReceiptsBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
-//        val textView: TextView = binding.textDashboard
-//        viewModel.text.observe(viewLifecycleOwner) {
-//            textView.text = it
-//        }
         return root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val imageView: ImageView = view.findViewById(R.id.receipt_dashboard)
+        val receiptList: LinearLayout = view.findViewById(R.id.receiptList)
 
-        // Observe the image Uri from ViewModel
-        viewModel.imageUri.observe(viewLifecycleOwner, Observer { uri ->
-            if (uri != null) {
-                // Load the image into the ImageView using Coil
-                imageView.load(uri)
-            }
-        })
-
-        imageView.setOnClickListener{
-            showPopupMenu(it)
+        // Handle click event
+        receiptList.setOnClickListener {
+            Toast.makeText(requireContext(), "LinearLayout clicked!", Toast.LENGTH_SHORT).show()
+            // Perform actions for click event here
         }
+
+        // Handle long-click event
+        receiptList.setOnLongClickListener {
+            showPopupMenu(view) // Return true to indicate the event is consumed
+            true
+        }
+
+        val receiptDescription: TextView = view.findViewById(R.id.receipt_description)
+        val receiptCost: TextView = view.findViewById(R.id.cost)
+        val receiptDate: TextView = view.findViewById(R.id.date)
+
+        viewModel.receipt.observe(viewLifecycleOwner, Observer { receipt ->
+            updateReceiptList(receiptList, receiptDescription, receiptCost, receiptDate, receipt)
+        })
+    }
+
+    private fun updateReceiptList(receiptList: LinearLayout, description: TextView, cost: TextView, date: TextView, receipt: Receipt) {
+
+        val textView = TextView(safeContext).apply{
+            description.text = receipt.getPurpose()
+            cost.text = receipt.getCost().toString()
+            date.text = receipt.getDate().toString()
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+        }
+
+        receiptList.addView(textView)
     }
 
     private fun showPopupMenu(view: View) {

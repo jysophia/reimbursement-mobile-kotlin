@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.home.CameraFragment">
+    tools:context=".ui.camera.CameraFragment">
 
 <!--    <TextView-->
 <!--        android:id="@+id/text_home"-->
@@ -26,7 +26,6 @@
         android:id="@+id/viewFinder"
         android:layout_width="412dp"
         android:layout_height="476dp"
-        android:layout_marginTop="4dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"

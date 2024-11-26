@@ -6,20 +6,20 @@
     app:startDestination="@+id/navigation_home">
 
     <fragment
+        android:id="@+id/navigation_dashboard"
+        android:name="com.example.project_ellen_kotlin.ui.receipts.ReceiptFragment"
+        android:label="@string/title_dashboard"
+        tools:layout="@layout/fragment_receipts" />
+
+    <fragment
         android:id="@+id/navigation_home"
-        android:name="com.example.project_ellen_kotlin.ui.home.CameraFragment"
+        android:name="com.example.project_ellen_kotlin.ui.camera.CameraFragment"
         android:label="Camera"
         tools:layout="@layout/fragment_camera" />
 
     <fragment
-        android:id="@+id/navigation_dashboard"
-        android:name="com.example.project_ellen_kotlin.ui.dashboard.DashboardFragment"
-        android:label="@string/title_dashboard"
-        tools:layout="@layout/fragment_dashboard" />
-
-    <fragment
         android:id="@+id/navigation_email"
-        android:name="com.example.project_ellen_kotlin.ui.notifications.EmailFragment"
+        android:name="com.example.project_ellen_kotlin.ui.email.EmailFragment"
         android:label="Email"
         tools:layout="@layout/fragment_email" />
 </navigation>
