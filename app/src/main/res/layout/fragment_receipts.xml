@@ -190,14 +190,14 @@
                     android:paddingHorizontal="17dp"
                     android:clipChildren="false"
                     android:clipToPadding="false"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
+                    android:visibility="invisible">
                     <TextView
                         android:id="@+id/receiptSectionTitle"
                         android:textColor="@color/shadow"
                         android:textSize="@dimen/fontsize_label_small"
                         android:layout_height="wrap_content"
                         android:layout_width="wrap_content"
-                        android:text="October 2024"
                         />
                 </LinearLayout>
 
@@ -210,49 +210,9 @@
                     android:clipToPadding="false"
                     android:orientation="vertical"
                     android:clickable="true"
-                    android:focusable="true">
-                    <LinearLayout
-                        android:layout_width="84dp"
-                        android:layout_height="84dp"
-                        android:layout_marginTop="0dp"
-                        android:scaleType="fitXY">
-                        <ImageView
-                            android:id="@+id/img_default"
-                            android:layout_width="19dp"
-                            android:layout_height="19dp"
-                            android:layout_marginTop="32dp"
-                            android:layout_marginStart="32dp"
-                            android:src="@drawable/ic_img_default"
-                            />
-                        <TextView
-                            android:id="@+id/receipt_description"
-                            android:textColor="@color/shadow"
-                            android:textSize="@dimen/fontsize_label_medium"
-                            android:layout_height="25dp"
-                            android:layout_width="200dp"
-                            android:translationX="50dp"
-                            android:translationY="10dp"
-                            android:text=""/>
-                        <TextView
-                            android:id="@+id/cost"
-                            android:layout_height="20dp"
-                            android:layout_width="60dp"
-                            android:text=""
-                            android:textColor="@color/shadow"
-                            android:textSize="@dimen/fontsize_label_medium"
-                            android:translationX="80dp"
-                            android:translationY="10dp" />
-                        <TextView
-                            android:id="@+id/date"
-                            android:layout_width="80dp"
-                            android:layout_height="20dp"
-                            android:text=""
-                            android:textColor="@color/shadow"
-                            android:textSize="@dimen/fontsize_label_small"
-                            android:translationX="-210dp"
-                            android:translationY="50dp" />
+                    android:focusable="true"
+                    android:visibility="invisible">
 
-                    </LinearLayout>
 
                 </LinearLayout>
             </LinearLayout>
