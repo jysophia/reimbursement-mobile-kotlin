@@ -8,6 +8,7 @@ import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.PopupMenu
 import android.widget.TextView
@@ -58,8 +59,7 @@ class ReceiptFragment : Fragment() {
 
         // Handle click event
         receiptList.setOnClickListener {
-            Toast.makeText(requireContext(), "LinearLayout clicked!", Toast.LENGTH_SHORT).show()
-            // Perform actions for click event here
+            showReceiptImage()
         }
 
         // Handle long-click event
@@ -75,6 +75,25 @@ class ReceiptFragment : Fragment() {
         viewModel.receipt.observe(viewLifecycleOwner, Observer { receipt ->
             updateReceiptList(receiptList, receiptDescription, receiptCost, receiptDate, receipt)
         })
+    }
+
+    private fun showReceiptImage() {
+        val lor = viewModel.retrieveListOfReceipts()
+        val builder: AlertDialog.Builder = AlertDialog.Builder(safeContext)
+
+        val imageView = ImageView(safeContext).apply{
+            setImageBitmap(lor[0].getImageData())
+
+            layoutParams = ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            )
+            scaleType = ImageView.ScaleType.FIT_CENTER
+            adjustViewBounds = true
+        }
+        builder.setView(imageView)
+        builder.setPositiveButton("Close") { dialog, _ -> dialog.dismiss() }
+        builder.show()
     }
 
     private fun updateReceiptList(receiptList: LinearLayout, description: TextView, cost: TextView, date: TextView, receipt: Receipt) {
