@@ -2,7 +2,7 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:id="@+id/navigation_dashboard"
+        android:id="@+id/navigation_receipts"
         android:icon="@drawable/ic_receipt_black_24dp"
         android:title="Receipts"
         android:layout_marginBottom="-72dp"
@@ -19,7 +19,7 @@
         />
 
     <item
-        android:id="@+id/navigation_home"
+        android:id="@+id/navigation_camera"
         android:icon="@drawable/ic_camera_black_24dp"
         android:title="Camera" />
 

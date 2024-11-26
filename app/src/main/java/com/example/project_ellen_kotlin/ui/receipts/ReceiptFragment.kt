@@ -1,5 +1,6 @@
 package com.example.project_ellen_kotlin.ui.receipts
 
+import android.app.ActionBar
 import android.app.AlertDialog
 import android.content.Context
 import android.os.Bundle
@@ -19,9 +20,9 @@ import androidx.lifecycle.Observer
 import com.example.project_ellen_kotlin.Email
 import com.example.project_ellen_kotlin.MainActivity
 import com.example.project_ellen_kotlin.R
+import com.example.project_ellen_kotlin.Receipt
 import com.example.project_ellen_kotlin.databinding.FragmentReceiptsBinding
 import com.example.project_ellen_kotlin.ui.SharedViewModel
-import com.example.project_ellen_kotlin.Receipt
 
 class ReceiptFragment : Fragment() {
 
