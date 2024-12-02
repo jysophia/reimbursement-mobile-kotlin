@@ -84,12 +84,12 @@ class CameraPreviewTest : LifecycleOwner, ImageReader.OnImageAvailableListener, 
 //        reader.setOnImageAvailableListener(this, Handler(thread.looper))
         reader.setOnImageAvailableListener(this, Handler(thread.looper))
     }
-//
-//    @After
-//    fun teardownImageReader() {
-//        reader.close()
-//        thread.quit()
-//    }
+
+    @After
+    fun teardownImageReader() {
+        reader.close()
+        thread.quit()
+    }
 
 //    override fun getLifecycle() = registry!!
     override val lifecycle: Lifecycle
