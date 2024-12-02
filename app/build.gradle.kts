@@ -27,6 +27,13 @@ android {
             )
         }
     }
+    buildFeatures {
+        compose = true
+    }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.0"
+    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
@@ -48,13 +55,25 @@ android {
 }
 
 dependencies {
-    var camerax_version = "1.2.2"
-    implementation("androidx.camera:camera-core:$camerax_version")
-    implementation("androidx.camera:camera-camera2:$camerax_version")
-    implementation("androidx.camera:camera-lifecycle:$camerax_version")
-    implementation("androidx.camera:camera-video:$camerax_version")
-    implementation("androidx.camera:camera-view:$camerax_version")
-    implementation("androidx.camera:camera-extensions:$camerax_version")
+    val cameraxVersion = "1.2.2"
+    implementation("androidx.camera:camera-core:$cameraxVersion")
+    implementation("androidx.camera:camera-camera2:$cameraxVersion")
+    implementation("androidx.camera:camera-lifecycle:$cameraxVersion")
+    implementation("androidx.camera:camera-video:$cameraxVersion")
+    implementation("androidx.camera:camera-view:$cameraxVersion")
+    implementation("androidx.camera:camera-extensions:$cameraxVersion")
+
+    val composeUiVersion = "1.7.5"
+    implementation("androidx.compose.ui:ui:$composeUiVersion")
+    implementation("androidx.compose.material:material:$composeUiVersion")
+    implementation("androidx.compose.ui:ui-tooling-preview:$composeUiVersion")
+    // https://mvnrepository.com/artifact/androidx.lifecycle/lifecycle-runtime-ktx
+    runtimeOnly("androidx.lifecycle:lifecycle-runtime-ktx:2.8.6")
+    // https://mvnrepository.com/artifact/androidx.activity/activity-compose
+    runtimeOnly("androidx.activity:activity-compose:1.9.2")
+
+    // https://mvnrepository.com/artifact/com.google.relay/relay-gradle-plugin
+    implementation("com.google.relay:relay-gradle-plugin:0.3.12")
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)

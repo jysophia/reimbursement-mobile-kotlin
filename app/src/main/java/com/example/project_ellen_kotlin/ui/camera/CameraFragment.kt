@@ -41,6 +41,25 @@ import java.util.Locale
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import android.app.DatePickerDialog
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Button
+import androidx.compose.material.LinearProgressIndicator
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import java.util.Calendar
 
 
@@ -56,6 +75,8 @@ class CameraFragment : Fragment() {
     private lateinit var cameraProvider: ProcessCameraProvider
     private var camera: Camera? = null
     private var operator: Operator = Operator()
+    private var figma: FigmaComponents = FigmaComponents()
+    private var showDialog = mutableStateOf(false)
 
     private lateinit var safeContext: Context
     private lateinit var activity: MainActivity
@@ -96,8 +117,19 @@ class CameraFragment : Fragment() {
             ActivityCompat.requestPermissions(requireActivity(), REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS)
         }
 
+//        binding.composeView.setContent{
+//            if (showDialog.value) {
+//                figma.FigmaDialogContent(onDismiss = {
+//                    showDialog.value = false
+//                })
+//            }
+//        }
+
         // Setup the listener for take photo button
-        binding.btnAddReceipt.setOnClickListener{ takePhoto() }
+        binding.btnAddReceipt.setOnClickListener{
+            showDialog.value=true
+            takePhoto()
+        }
 
         outputDirectory = getOutputDirectory()
 
@@ -185,10 +217,8 @@ class CameraFragment : Fragment() {
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    private fun userConfirmAndInputDetails(it: Receipt) {
-        userConfirmDate(it)
-        userConfirmCost(it)
-        userInputPurpose(it)
+    private fun userConfirmAndInputDetails(receipt: Receipt) {
+        userInputPurpose(receipt)
     }
 
     // Reference: ChatGPT
@@ -207,7 +237,6 @@ class CameraFragment : Fragment() {
         builder.setPositiveButton("Yes",
             DialogInterface.OnClickListener { dialog, which ->
                 viewModel.addReceipt(receipt)
-                receipt.getUri().let { viewModel.updateImageUri(it) }
             })
         builder.setNegativeButton("No",
             DialogInterface.OnClickListener { dialog, which ->
@@ -239,7 +268,6 @@ class CameraFragment : Fragment() {
                 val date = LocalDate.parse(selectedDate, formatter)
                 receipt.setDate(date)
                 viewModel.addReceipt(receipt)
-                receipt.getUri().let { viewModel.updateImageUri(it) }
             },
             year, month, day
         )
@@ -249,12 +277,14 @@ class CameraFragment : Fragment() {
 
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun userConfirmCost(receipt: Receipt) {
         val builder: AlertDialog.Builder = AlertDialog.Builder(safeContext)
         builder.setTitle("Is this the correct total cost?\n" + receipt.getCost())
 
         builder.setPositiveButton("Yes",
             DialogInterface.OnClickListener { dialog, which ->
+                userConfirmDate(receipt)
             })
         builder.setNegativeButton("No",
             DialogInterface.OnClickListener { dialog, which ->
@@ -285,6 +315,7 @@ class CameraFragment : Fragment() {
         builder.show()
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun userInputPurpose(receipt: Receipt) {
         var purpose = ""
         val builder: AlertDialog.Builder = AlertDialog.Builder(safeContext)
@@ -301,6 +332,7 @@ class CameraFragment : Fragment() {
             DialogInterface.OnClickListener { dialog, which ->
                 purpose = input.getText().toString()
                 receipt.setPurpose(purpose)
+                userConfirmCost(receipt)
             })
         builder.setNegativeButton("Cancel",
             DialogInterface.OnClickListener { dialog, which -> dialog.cancel() })

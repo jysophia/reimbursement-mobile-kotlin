@@ -34,6 +34,7 @@ class ReceiptFragment : Fragment() {
     private lateinit var activity: MainActivity
     private lateinit var safeContext: Context
     private val viewModel: SharedViewModel by activityViewModels()
+    private val monthlySections = mutableListOf<String>()
 
     // This property is only valid between onCreateView and
     // onDestroyView.
@@ -61,173 +62,166 @@ class ReceiptFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         val receiptSection : LinearLayout = view.findViewById(R.id.receiptSection)
         val receiptContainer: LinearLayout = view.findViewById(R.id.receiptContainer)
-        viewModel.receipts.observe(viewLifecycleOwner, Observer { receipt ->
-            createReceiptView(receipt, receiptContainer, receiptSection)
-//            receiptContainer.addView(receiptView)
-//            updateReceiptList(receiptContainer, receiptDescription, receiptCost, receiptDate, receipts)
+        viewModel.receipts.observe(viewLifecycleOwner, Observer { receipts ->
+            createReceiptView(receipts, receiptContainer, receiptSection)
         })
     }
 
-    private fun createReceiptView(receipt: Receipt, container: LinearLayout, section: LinearLayout) {
-        // Create monthly header
-        val monthlyHeader = LinearLayout(safeContext).apply{
-            setBackgroundColor(ContextCompat.getColor(safeContext, R.color.surfaceVariant))
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply {
-                setMargins(12, 17, 12, 17)
+    private fun createReceiptView(receipts: List<Receipt>, container: LinearLayout, section: LinearLayout) {
+
+        for (receipt in receipts) {
+            // Create monthly header
+            val monthlyHeader = LinearLayout(safeContext).apply{
+                setBackgroundColor(ContextCompat.getColor(safeContext, R.color.surfaceVariant))
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    setMargins(12, 17, 12, 17)
+                }
+                clipChildren = false
+                clipToPadding = false
+                orientation = LinearLayout.VERTICAL
             }
-            clipChildren = false
-            clipToPadding = false
-            orientation = LinearLayout.VERTICAL
-        }
 
-        // Get the month
-        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-        val currentDate = dateFormat.parse(receipt.getDate().toString())
-        val calendar = Calendar.getInstance()
-        calendar.time = currentDate?: Date()
-        val year = calendar.get(Calendar.YEAR).toString()
-        val monthIndex = calendar.get(Calendar.MONTH)
-        val month = DateFormatSymbols(Locale.getDefault()).months[monthIndex]
+            // Get the month
+            val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            val currentDate = dateFormat.parse(receipt.getDate().toString())
+            val calendar = Calendar.getInstance()
+            calendar.time = currentDate?: Date()
+            val year = calendar.get(Calendar.YEAR).toString()
+            val monthIndex = calendar.get(Calendar.MONTH)
+            val month = DateFormatSymbols(Locale.getDefault()).months[monthIndex]
+            val monthlyText = TextView(safeContext)
 
-        val monthlyText = TextView(safeContext).apply{
-            text = "$month $year"
-            setTextColor(ContextCompat.getColor(context, R.color.shadow))
-            textSize = 15f
-            setTextColor(ContextCompat.getColor(safeContext, R.color.black))
-        }
-
-        // Create a horizontal container for image and texts
-        val horizontalContainer = LinearLayout(safeContext).apply{
-            orientation = LinearLayout.HORIZONTAL
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply {
-                setMargins(16, 16, 16, 16)
+//            if (!monthlySections.contains("$month $year")) {
+            monthlyText.apply{
+                text = "$month $year"
+                setTextColor(ContextCompat.getColor(context, R.color.shadow))
+                textSize = 15f
+                setTextColor(ContextCompat.getColor(safeContext, R.color.black))
             }
-        }
 
-        // Create image view
-        val image = ImageView(safeContext).apply {
-            setImageBitmap(receipt.getImageData())
-            layoutParams = LinearLayout.LayoutParams(150, 150).apply{
-                setMargins(10, 0, 16, 0)
+            monthlySections.add("$month $year")
+
+            // Add monthly header
+            monthlyHeader.addView(monthlyText)
+
+            // Add monthlyHeader to receiptSection
+            section.addView(monthlyHeader)
+            section.visibility = View.VISIBLE
+//            }
+
+            // Create a horizontal container for image and texts
+            val horizontalContainer = LinearLayout(safeContext).apply{
+                orientation = LinearLayout.HORIZONTAL
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    setMargins(16, 16, 16, 16)
+                }
             }
-            scaleType = ImageView.ScaleType.CENTER_CROP
-        }
 
-        // Create a separate text container for text
-        val textContainer = LinearLayout(safeContext).apply {
-            orientation = LinearLayout.VERTICAL
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            )
-        }
-
-        // CreateTextViews for description, date, and cost
-        val description = TextView(safeContext).apply {
-            text = receipt.getDescription()
-            textSize = 16f
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply {
-                setMargins(20, 10, 20, 0)
+            // Create image view
+            val image = ImageView(safeContext).apply {
+                setImageBitmap(receipt.getImageData())
+                layoutParams = LinearLayout.LayoutParams(150, 150).apply{
+                    setMargins(10, 0, 16, 0)
+                }
+                scaleType = ImageView.ScaleType.CENTER_CROP
             }
-            setTextColor(ContextCompat.getColor(safeContext, R.color.black))
-        }
 
-        val date = TextView(safeContext).apply {
-            text = receipt.getDate().toString()
-            textSize = 16f
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply {
-                setMargins(20, 10, 20, 0)
+            // Create a separate text container for text
+            val textContainer = LinearLayout(safeContext).apply {
+                orientation = LinearLayout.VERTICAL
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                )
             }
-            setTextColor(ContextCompat.getColor(context, R.color.black))
-        }
 
-        val cost = TextView(safeContext).apply {
-            text = receipt.getCost().toString()
-            textSize = 16f
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply {
-                setMargins(350, 10, 0, 0)
+            // CreateTextViews for description, date, and cost
+            val description = TextView(safeContext).apply {
+                text = receipt.getDescription()
+                textSize = 16f
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    setMargins(20, 10, 20, 0)
+                }
+                setTextColor(ContextCompat.getColor(safeContext, R.color.black))
             }
-            setTextColor(ContextCompat.getColor(context, R.color.black))
-        }
 
-        val statusContainer = LinearLayout(safeContext).apply {
-            orientation = LinearLayout.VERTICAL
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            )
-        }
-
-        val status = ImageView(safeContext).apply {
-            setImageDrawable(ContextCompat.getDrawable(safeContext, R.drawable.status_pending))
-            layoutParams = LinearLayout.LayoutParams(204, 84).apply{
-                setMargins(350, 10, 0, 0)
+            val date = TextView(safeContext).apply {
+                text = receipt.getDate().toString()
+                textSize = 16f
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    setMargins(20, 10, 20, 0)
+                }
+                setTextColor(ContextCompat.getColor(context, R.color.black))
             }
-            scaleType = ImageView.ScaleType.FIT_END
+
+            val cost = TextView(safeContext).apply {
+                text = receipt.getCost().toString()
+                textSize = 16f
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    setMargins(350, 10, 0, 0)
+                }
+                setTextColor(ContextCompat.getColor(context, R.color.black))
+            }
+
+            val statusContainer = LinearLayout(safeContext).apply {
+                orientation = LinearLayout.VERTICAL
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+            }
+
+            val status = ImageView(safeContext).apply {
+                setImageDrawable(ContextCompat.getDrawable(safeContext, R.drawable.status_pending))
+                layoutParams = LinearLayout.LayoutParams(204, 84).apply{
+                    setMargins(350, 10, 0, 0)
+                }
+                scaleType = ImageView.ScaleType.FIT_END
+            }
+
+            // Handle click event
+            container.setOnClickListener {
+                showReceiptImage()
+            }
+
+            // Handle long-click event
+            container.setOnLongClickListener {
+                view?.let { v -> showPopupMenu(v) } // Return true to indicate the event is consumed
+                true
+            }
+
+            // Add status bar and cost to statusContainer
+            statusContainer.addView(cost)
+            statusContainer.addView(status)
+
+            // Add description and date to textContainer
+            textContainer.addView(description)
+            textContainer.addView(date)
+
+            // Add image and textContainer to horizontalContainer
+            horizontalContainer.addView(image)
+            horizontalContainer.addView(textContainer)
+            horizontalContainer.addView(statusContainer)
+
+            // Add horizontalContainer to the container
+            container.addView(horizontalContainer)
+            container.visibility = View.VISIBLE
         }
-
-//        // Create a new LinearLayout
-//        val receiptContainer = LinearLayout(safeContext).apply {
-//            orientation = LinearLayout.VERTICAL
-//            layoutParams = LinearLayout.LayoutParams(
-//                LinearLayout.LayoutParams.MATCH_PARENT,
-//                LinearLayout.LayoutParams.WRAP_CONTENT
-//            )
-//            addView(description)
-//            addView(cost)
-//            addView(date)
-//            background = ContextCompat.getDrawable(safeContext, R.drawable.white_background)
-//        }
-
-        // Handle click event
-        container.setOnClickListener {
-            showReceiptImage()
-        }
-
-        // Handle long-click event
-        container.setOnLongClickListener {
-            view?.let { v -> showPopupMenu(v) } // Return true to indicate the event is consumed
-            true
-        }
-
-        // Add monthly header
-        monthlyHeader.addView(monthlyText)
-
-        // Add monthlyHeader to receiptSection
-        section.addView(monthlyHeader)
-        section.visibility = View.VISIBLE
-
-        // Add status bar and cost to statusContainer
-        statusContainer.addView(cost)
-        statusContainer.addView(status)
-
-        // Add description and date to textContainer
-        textContainer.addView(description)
-        textContainer.addView(date)
-
-        // Add image and textContainer to horizontalContainer
-        horizontalContainer.addView(image)
-        horizontalContainer.addView(textContainer)
-        horizontalContainer.addView(statusContainer)
-
-        // Add horizontalContainer to the container
-        container.addView(horizontalContainer)
-        container.visibility = View.VISIBLE
     }
 
     private fun showReceiptImage() {
