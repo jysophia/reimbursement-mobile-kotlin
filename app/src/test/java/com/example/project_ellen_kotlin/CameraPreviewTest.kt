@@ -21,7 +21,7 @@ import androidx.lifecycle.LifecycleRegistry
 import androidx.test.annotation.UiThreadTest
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.rule.GrantPermissionRule
-import com.example.project_ellen_kotlin.ui.home.CameraFragment
+import com.example.project_ellen_kotlin.ui.camera.CameraFragment
 import org.junit.After
 import org.junit.Assert
 import org.junit.Assert.assertEquals

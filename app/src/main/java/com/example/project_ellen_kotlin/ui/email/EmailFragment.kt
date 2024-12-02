@@ -1,7 +1,6 @@
-package com.example.project_ellen_kotlin.ui.notifications
+package com.example.project_ellen_kotlin.ui.email
 
 import android.content.Context
-import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -10,7 +9,6 @@ import android.widget.Button
 import android.widget.EditText
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import com.example.project_ellen_kotlin.Email
 import com.example.project_ellen_kotlin.MainActivity
 import com.example.project_ellen_kotlin.R
 import com.example.project_ellen_kotlin.Receipt

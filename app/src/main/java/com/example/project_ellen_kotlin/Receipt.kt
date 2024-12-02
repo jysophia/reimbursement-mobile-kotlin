@@ -1,6 +1,7 @@
 package com.example.project_ellen_kotlin
 
 import android.graphics.Bitmap
+import android.graphics.Matrix
 import android.net.Uri
 
 data class Receipt(val newDate: Any, val newPrice: Double, val newPurpose: String, val newUri: Uri?) {
@@ -14,7 +15,7 @@ data class Receipt(val newDate: Any, val newPrice: Double, val newPurpose: Strin
         purpose = updatedPurpose
     }
 
-    fun getPurpose(): String {
+    fun getDescription(): String {
         return purpose
     }
 
@@ -43,7 +44,11 @@ data class Receipt(val newDate: Any, val newPrice: Double, val newPurpose: Strin
     }
 
     fun setImageData(bitmap : Bitmap) {
-        imageData = bitmap
+        val matrix = Matrix()
+        matrix.postRotate(90F)
+        imageData = Bitmap.createBitmap(
+            bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true
+        )
     }
 
     fun getImageData() : Bitmap {
