@@ -1,37 +1,50 @@
 **Receipt Reader Android Mobile App**
 
-This is an Receipt Reader used as an Android Mobile App. Built using Kotlin and XML, I created this app after a need for it was expressed by a family member. My main objective for this project is to use my skill to help others, starting with the people around me. It is currently still in development, but here are the major features:
+This is PockExpense, a receipt reader and compiler to streamline reimbursement processes. I created this app because of a personal request from a family member. My main objective for this project is to use my skill to help others, starting with the people around me. It is currently still in development, but here are the major features:
+
+_User Opens the App to the Home Page_
+
+The home page is where the user will see all of the receipts they uploaded so far. In this case, we start with none.
+
+<img src="app/images/1_homepage.jpg" width="250" height="500">
 
 _User Takes a Picture of their Receipt_
 
 The user can open the app to its camera page and take a picture of the receipt.
 
-<img src="app/images/1_camera_project-ellen-kotlin.jpg" width="250" height="500" />
+<img src="app/images/2_camera_take_picture.png" width="250" height="500" />
 
 _User Writes the Purpose of the Receipt_
 
-The user can write the context of that receipt and it will automatically save with the receipt data.
+The user can write the context of that receipt and confirm the cost and date as written on the receipt. If any mistakes are found, the user can edit it on the spot.
 
 <p>
-  <img src="app/images/2_setpurpose_project-ellen-kotlin.jpg" width="250" height="500" />
-  <img src="app/images/2_setpurpose2_project-ellen-kotlin.jpg" width="250" height="500" />
+  <img src="app/images/3_set_purpose.png" width="250" height="500" />
+  <img src="app/images/4_confirm_cost.png" width="250" height="500" />
+  <img src="app/images/5_confirm_date.png" width="250" height="500" />
+  <img src="app/images/6_edit_date.png" width="250" height="500" />
 </p>
 
 _User Views the Receipt on Dashboard_
 
-The user can go to the dashboard tab and see the receipt along with options for what the user can do with it. This includes viewing the receipt information that has been read into the receipt data at the time of taking the picture, deleting the receipt, and emailing the receipt.
+The user can go back to the home page and view the receipt along with options for what the user can do with it. It will have a status tag marked as "Pending" before it is reimbursed. Action items include viewing the receipt information, emailing the receipt, and deleting the receipt.
 
 <p>
-  <img src="app/images/3_dashboard_project-ellen-kotlin.jpg" width="250" height="500" />
-  <img src="app/images/4_dashboardoptions_project-ellen-kotlin.jpg" width="250" height="500" />
-  <img src="app/images/5_receiptinfo_project-ellen-kotlin.jpg" width="250" height="500" />
+  <img src="app/images/7_updated_homepage.png" width="250" height="500" />
+  <img src="app/images/8_view_receipt_image.png" width="250" height="500" />
+  <img src="app/images/9_menu_options.png" width="250" height="500" />
+  <img src="app/images/10_receipt_information.png" width="250" height="500" />
 </p>
 
 _User Emails the Receipt to their Personal Email_
 
 The user can email the receipt, which will generate an automated message with an attachment of the receipt image (still in development) and the receipt information as shown above.
 
-<img src="app/images/6_email_project-ellen-kotlin.jpg" width="250" height="500" />
+<img src="app/images/11_email.png" width="250" height="500" />
+
+_Tech Stack_
+
+This project mainly uses Kotlin and Android API Frameworks to create the app, Google ML Kit Text Recognition API to parse and store receipt data, JUnit and Mockito to test the features, and Figma and Jetpack Composable to integrate UI designs.
 
 _Final Thoughts_
 

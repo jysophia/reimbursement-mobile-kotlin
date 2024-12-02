@@ -294,6 +294,7 @@ class CameraFragment : Fragment() {
         builder.show()
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun userInputCost(receipt: Receipt) {
         val builder: AlertDialog.Builder = AlertDialog.Builder(safeContext)
         builder.setTitle("Enter the total cost below:")
@@ -306,6 +307,7 @@ class CameraFragment : Fragment() {
             DialogInterface.OnClickListener { dialog, which ->
                 val cost = input.getText().toString().toDouble()
                 receipt.setCost(cost)
+                userConfirmDate(receipt)
             })
         builder.setNegativeButton("Try again",
             DialogInterface.OnClickListener { dialog, which ->

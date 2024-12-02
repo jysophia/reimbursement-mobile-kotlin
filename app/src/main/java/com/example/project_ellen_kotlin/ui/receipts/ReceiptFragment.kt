@@ -259,32 +259,27 @@ class ReceiptFragment : Fragment() {
     }
 
     private fun showPopupMenu(view: View) {
-        // Create a PopupMenu instance
-        val popupMenu = PopupMenu(requireContext(), view, Gravity.END)
-        // Inflate the menu resource
-        popupMenu.menuInflater.inflate(R.menu.image_options, popupMenu.menu)
-        // Set the click listener for menu items
-        popupMenu.setOnMenuItemClickListener { item ->
-            handleMenuItemClick(item)
-            true
-        }
-        // Show the PopupMenu
-        popupMenu.show()
+        val receiptMenu = AlertDialog.Builder(safeContext)
+            .setItems(arrayOf("Receipt Information", "Email", "Delete")) { _, which ->
+                handleMenuItemClick(which)
+            }
+            .create()
+        receiptMenu.show()
     }
 
-    private fun handleMenuItemClick(item: MenuItem) {
-        when (item.itemId) {
-            R.id.action_delete -> {
+    private fun handleMenuItemClick(item: Int) {
+        when (item) {
+            0 -> {
                 // Handle delete event
-                deleteImage()
+                showReceiptInfo()
             }
-            R.id.action_email -> {
+            1 -> {
                 // Handle email event
                 setupEmail()
             }
-            R.id.action_show_info -> {
+            2 -> {
                 // Handle show info event
-                showReceiptInfo()
+                deleteImage()
             }
         }
 
