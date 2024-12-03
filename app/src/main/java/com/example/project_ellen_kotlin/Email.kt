@@ -25,7 +25,7 @@ data class Email(val attachReceipt: Receipt?, val recipientEmail: String, val su
     }
 
     fun setSubjectLine(subjectLine: String) {
-        subject = subject
+        subject = subjectLine
     }
 
     fun getSubject() : String {

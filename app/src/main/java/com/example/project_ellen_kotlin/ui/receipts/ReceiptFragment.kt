@@ -290,20 +290,20 @@ class ReceiptFragment : Fragment() {
         val builder: AlertDialog.Builder = AlertDialog.Builder(safeContext)
         builder.setTitle("Receipt Information")
         builder.setMessage("Date: " + lor[0].getDate() +
-                "\nPrice: " + lor[0].getCost() + "\n" +
-                "Purpose: " + lor[0].getDescription() + "\n")
+                "\nExpense: " + lor[0].getCost() + "\n" +
+                "Description: " + lor[0].getDescription() + "\n")
         builder.setPositiveButton("OK") { dialog, _ -> dialog.dismiss() }
         builder.show()
     }
 
     private fun setupEmail() {
         val lor = viewModel.retrieveListOfReceipts()
-        val message = "Attached is the following receipt: \n" +
+        val message = "Attached are the following receipt(s): \n" +
                 "Date: " + lor[0].getDate() + "\n" +
-                "Purpose: " + lor[0].getDescription() + "\n" +
+                "Description: " + lor[0].getDescription() + "\n" +
                 "Amount Paid: " + lor[0].getCost() + "\n"
         val email = Email(lor[0], "", "", message)
-//        email.setMessage(message)
+        email.setMessage(message)
         viewModel.setupEmail(email)
     }
 
