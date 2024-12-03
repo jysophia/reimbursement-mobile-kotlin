@@ -38,9 +38,12 @@ The user can go back to the home page and view the receipt along with options fo
 
 _User Emails the Receipt to their Personal Email_
 
-The user can email the receipt, which will generate an automated message with an attachment of the receipt image (still in development) and the receipt information as shown above.
+The user can email the receipt, which will generate an automated message with an attachment of the receipt image and the receipt information as shown above. The email format will adapt to the device's default email service. In this case, we will use Gmail.
 
-<img src="app/images/11_email.jpg" width="250" height="500" />
+<p>
+  <img src="app/images/11_email.jpg" width="250" height="500" />
+  <img src="app/images/12_gmail.jpg" width="250" height="500" />
+</p>
 
 _Tech Stack_
 
